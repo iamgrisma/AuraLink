@@ -31,6 +31,9 @@ CREATE TABLE IF NOT EXISTS profiles (
     name TEXT,
     bio TEXT,
     avatar_url TEXT,
+    avatar_display_mode TEXT DEFAULT 'image',
+    avatar_size TEXT DEFAULT 'md',
+    avatar_frame_style TEXT DEFAULT 'animated-border',
     background_type TEXT DEFAULT 'gradient',
     background_value TEXT DEFAULT 'linear-gradient(135deg, #0f172a, #1e293b)',
     font TEXT DEFAULT 'Inter',
@@ -46,6 +49,9 @@ CREATE TABLE IF NOT EXISTS profiles (
     show_watermark INTEGER DEFAULT 1,
     custom_css TEXT,
     social_links_json TEXT,
+    social_display_style TEXT DEFAULT 'icons',
+    social_icon_style TEXT DEFAULT 'brand',
+    social_icon_shape TEXT DEFAULT 'circle',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

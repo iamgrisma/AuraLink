@@ -2,9 +2,97 @@ import { Link2, User, Eye, X } from 'lucide-react';
 import { FaTwitter, FaInstagram, FaYoutube, FaTiktok, FaFacebook, FaGithub, FaLinkedin, FaSpotify, FaDiscord, FaTwitch } from 'react-icons/fa';
 
 const AVAILABLE_ICONS = { FaTwitter, FaInstagram, FaYoutube, FaTiktok, FaFacebook, FaGithub, FaLinkedin, FaSpotify, FaDiscord, FaTwitch };
+const SOCIAL_COLOR_MAP = {
+  instagram: '#e1306c',
+  youtube: '#ff0000',
+  twitter: '#1d9bf0',
+  tiktok: '#ffffff',
+  facebook: '#1877f2',
+  github: '#f5f5f5',
+  linkedin: '#0a66c2'
+};
+const AVATAR_SIZE_MAP = {
+  sm: 58,
+  md: 74,
+  lg: 96,
+  xl: 114
+};
 
 export default function Simulator({ profile, username, proStatus, showMobilePreview, setShowMobilePreview }) {
   if (!profile) return null;
+
+  const avatarInitial = (profile.name || username || '?').trim().charAt(0).toUpperCase();
+  const avatarSize = profile.avatarSize || 'md';
+  const avatarFrameStyle = profile.avatarFrameStyle || 'animated-border';
+  const avatarDisplayMode = profile.avatarDisplayMode || 'image';
+  const socialDisplayStyle = profile.socialDisplayStyle || 'icons';
+  const socialIconStyle = profile.socialIconStyle || 'brand';
+  const socialIconShape = profile.socialIconShape || 'circle';
+  const avatarDimension = AVATAR_SIZE_MAP[avatarSize] || AVATAR_SIZE_MAP.md;
+
+  const renderAvatar = () => (
+    <div
+      className={`avatar-shell avatar-${avatarSize} avatar-${avatarFrameStyle}`}
+      style={{ width: avatarDimension, height: avatarDimension, margin: '0 auto' }}
+    >
+      {avatarDisplayMode === 'initial' || !profile.avatarUrl ? (
+        <div className="avatar-monogram" style={{ width: '100%', height: '100%' }}>
+          <span>{avatarInitial}</span>
+        </div>
+      ) : (
+        <img src={profile.avatarUrl} alt="Avatar" className="avatar-image" style={{ margin: 0 }} />
+      )}
+    </div>
+  );
+
+  const renderSocialItem = ([platform, handle]) => {
+    const Icon = AVAILABLE_ICONS[{
+      instagram: 'FaInstagram',
+      youtube: 'FaYoutube',
+      twitter: 'FaTwitter',
+      tiktok: 'FaTiktok',
+      facebook: 'FaFacebook',
+      github: 'FaGithub',
+      linkedin: 'FaLinkedin'
+    }[platform]];
+    if (!Icon) return null;
+
+    const brandColor = SOCIAL_COLOR_MAP[platform] || '#ffffff';
+    const toneColor = socialIconStyle === 'brand' ? brandColor : '#ffffff';
+    const label = platform.charAt(0).toUpperCase() + platform.slice(1);
+    const handleText = handle.startsWith('@') ? handle : `@${handle}`;
+
+    return (
+      <a
+        key={platform}
+        href="#"
+        onClick={(e) => e.preventDefault()}
+        className={`social-item social-layout-${socialDisplayStyle} social-tone-${socialIconStyle} social-shape-${socialIconShape}`}
+        style={{
+          color: toneColor,
+          borderColor: socialIconStyle === 'outline' ? toneColor : undefined,
+          backgroundColor: socialIconStyle === 'glass'
+            ? 'rgba(255,255,255,0.08)'
+            : socialIconStyle === 'brand'
+              ? `${brandColor}1a`
+              : undefined
+        }}
+      >
+        <span className="social-icon-mark">
+          <Icon size={14} />
+        </span>
+        {(socialDisplayStyle === 'stack' || socialDisplayStyle === 'pills') && (
+          <span className="social-text-block">
+            <strong>{label}</strong>
+            <small>{handleText}</small>
+          </span>
+        )}
+        {socialDisplayStyle === 'text' && (
+          <span className="social-text-only">{label} {handleText}</span>
+        )}
+      </a>
+    );
+  };
 
   return (
     <div className={`preview-pane ${showMobilePreview ? 'active' : ''}`}>
@@ -34,15 +122,7 @@ export default function Simulator({ profile, username, proStatus, showMobilePrev
           )}
 
           {/* Avatar */}
-          <div className={`bio-avatar-wrapper ${profile.proStatus === 'approved' ? 'pro-avatar-ring' : ''}`}>
-            {profile.avatarUrl ? (
-              <img src={profile.avatarUrl} alt="Avatar" className="bio-avatar" style={{ margin: 0 }} />
-            ) : (
-              <div className="bio-avatar-placeholder" style={{ margin: 0 }}>
-                <User size={30} style={{ color: 'var(--text-muted)' }} />
-              </div>
-            )}
-          </div>
+          {renderAvatar()}
 
           <h2 className="bio-name" style={{ marginTop: '1rem' }}>{profile.name || `@${username}`}</h2>
           <p className="bio-description" style={{ color: profile.theme.backgroundValue.includes('#fdf2f8') ? 'rgba(76,5,25,0.7)' : 'rgba(255,255,255,0.7)' }}>
@@ -55,47 +135,10 @@ export default function Simulator({ profile, username, proStatus, showMobilePrev
               const socialLinks = JSON.parse(profile.socialLinksJson);
               const activePlatforms = Object.entries(socialLinks).filter(([, value]) => value && value.trim() !== '');
               if (activePlatforms.length === 0) return null;
-              
-              const getPlatformIcon = (platform) => {
-                switch (platform) {
-                  case 'instagram': return FaInstagram;
-                  case 'youtube': return FaYoutube;
-                  case 'twitter': return FaTwitter;
-                  case 'tiktok': return FaTiktok;
-                  case 'facebook': return FaFacebook;
-                  case 'github': return FaGithub;
-                  case 'linkedin': return FaLinkedin;
-                  default: return null;
-                }
-              };
 
               return (
-                <div className="bio-social-bar" style={{ display: 'flex', justifyContent: 'center', gap: '0.8rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-                  {activePlatforms.map(([platform]) => {
-                    const Icon = getPlatformIcon(platform);
-                    if (!Icon) return null;
-                    return (
-                      <div 
-                        key={platform} 
-                        className="bio-social-icon"
-                        title={platform}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          width: '32px',
-                          height: '32px',
-                          borderRadius: '50%',
-                          background: 'rgba(255, 255, 255, 0.1)',
-                          border: '1px solid rgba(255, 255, 255, 0.15)',
-                          color: profile.theme.backgroundValue.includes('#fdf2f8') ? '#4c0519' : '#ffffff',
-                          fontSize: '1rem'
-                        }}
-                      >
-                        <Icon />
-                      </div>
-                    );
-                  })}
+                <div className={`social-rail social-rail-${socialDisplayStyle}`}>
+                  {activePlatforms.map(renderSocialItem)}
                 </div>
               );
             } catch {

@@ -492,6 +492,15 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
     handleSave(updatedProfile);
   };
 
+  const handleUpdatePresentation = (key, value) => {
+    const updatedProfile = {
+      ...profile,
+      [key]: value
+    };
+    setProfile(updatedProfile);
+    handleSave(updatedProfile);
+  };
+
   // Upgrade to Pro Request
   const handleUpgradeToPro = () => {
     setShowProModal(true);
@@ -703,6 +712,7 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
                   expandedLinkId={expandedLinkId}
                   setExpandedLinkId={setExpandedLinkId}
                   handleUpdateLinkStyle={handleUpdateLinkStyle}
+                  handleUpdatePresentation={handleUpdatePresentation}
                   setMediaTarget={setMediaTarget}
                   handleSave={handleSave}
                   getSocialLink={getSocialLink}

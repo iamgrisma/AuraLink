@@ -6,6 +6,21 @@ import { FaTwitter, FaInstagram, FaYoutube, FaTiktok, FaFacebook, FaGithub, FaLi
 
 const AVAILABLE_ICONS = { FaTwitter, FaInstagram, FaYoutube, FaTiktok, FaFacebook, FaGithub, FaLinkedin, FaSpotify, FaDiscord, FaTwitch };
 const API_BASE = '/api';
+const SOCIAL_COLOR_MAP = {
+  instagram: '#e1306c',
+  youtube: '#ff0000',
+  twitter: '#1d9bf0',
+  tiktok: '#ffffff',
+  facebook: '#1877f2',
+  github: '#f5f5f5',
+  linkedin: '#0a66c2'
+};
+const AVATAR_SIZE_MAP = {
+  sm: 64,
+  md: 84,
+  lg: 108,
+  xl: 132
+};
 
 export default function PublicBioPage({ username }) {
   const [profile, setProfile] = useState(null);
@@ -194,6 +209,74 @@ export default function PublicBioPage({ username }) {
   };
 
   const showWatermark = profile.proStatus !== 'approved' || profile.showWatermark !== false;
+  const avatarInitial = (profile.name || username || '?').trim().charAt(0).toUpperCase();
+  const avatarSize = profile.avatarSize || 'md';
+  const avatarFrameStyle = profile.avatarFrameStyle || 'animated-border';
+  const avatarDisplayMode = profile.avatarDisplayMode || 'image';
+  const socialDisplayStyle = profile.socialDisplayStyle || 'icons';
+  const socialIconStyle = profile.socialIconStyle || 'brand';
+  const socialIconShape = profile.socialIconShape || 'circle';
+  const avatarDimension = AVATAR_SIZE_MAP[avatarSize] || AVATAR_SIZE_MAP.md;
+
+  const renderAvatar = () => (
+    <div
+      className={`avatar-shell avatar-${avatarSize} avatar-${avatarFrameStyle}`}
+      style={{ width: avatarDimension, height: avatarDimension }}
+    >
+      {avatarDisplayMode === 'initial' || !profile.avatarUrl ? (
+        <div className="avatar-monogram" style={{ width: '100%', height: '100%' }}>
+          <span>{avatarInitial}</span>
+        </div>
+      ) : (
+        <img src={profile.avatarUrl} alt="Avatar" className="avatar-image" />
+      )}
+    </div>
+  );
+
+  const renderSocialItem = ([platform, handle]) => {
+    const Icon = getPlatformIcon(platform);
+    if (!Icon) return null;
+
+    const brandColor = SOCIAL_COLOR_MAP[platform] || globalFontColor;
+    const toneColor = socialIconStyle === 'brand' ? brandColor : globalFontColor;
+    const itemClass = `social-item social-layout-${socialDisplayStyle} social-tone-${socialIconStyle} social-shape-${socialIconShape}`;
+    const label = platform.charAt(0).toUpperCase() + platform.slice(1);
+    const href = getPlatformUrl(platform, handle);
+    const handleText = handle.startsWith('@') ? handle : `@${handle}`;
+
+    return (
+      <a
+        key={platform}
+        href={href}
+        target="_blank"
+        rel="noreferrer"
+        className={itemClass}
+        style={{
+          color: toneColor,
+          borderColor: socialIconStyle === 'outline' ? toneColor : undefined,
+          backgroundColor: socialIconStyle === 'glass'
+            ? 'rgba(255,255,255,0.08)'
+            : socialIconStyle === 'brand'
+              ? `${brandColor}1a`
+              : undefined
+        }}
+        title={`${label} ${handleText}`}
+      >
+        <span className="social-icon-mark">
+          <Icon />
+        </span>
+        {(socialDisplayStyle === 'stack' || socialDisplayStyle === 'pills') && (
+          <span className="social-text-block">
+            <strong>{label}</strong>
+            <small>{handleText}</small>
+          </span>
+        )}
+        {socialDisplayStyle === 'text' && (
+          <span className="social-text-only">{label} {handleText}</span>
+        )}
+      </a>
+    );
+  };
 
   return (
     <>
@@ -218,15 +301,7 @@ export default function PublicBioPage({ username }) {
         <div className="public-profile-container">
           
           {/* Avatar */}
-          <div className={`bio-avatar-wrapper ${profile.proStatus === 'approved' ? 'pro-avatar-ring' : ''}`}>
-            {profile.avatarUrl ? (
-              <img src={profile.avatarUrl} alt="Avatar" className="bio-avatar" />
-            ) : (
-              <div className="bio-avatar-placeholder">
-                <User size={30} style={{ color: 'var(--text-muted)' }} />
-              </div>
-            )}
-          </div>
+          {renderAvatar()}
 
           {/* Info */}
           <h1 className="bio-name">{profile.name}</h1>
@@ -240,48 +315,9 @@ export default function PublicBioPage({ username }) {
               const socialLinks = JSON.parse(profile.socialLinksJson);
               const activePlatforms = Object.entries(socialLinks).filter(([, value]) => value && value.trim() !== '');
               if (activePlatforms.length === 0) return null;
-              
               return (
-                <div className="bio-social-bar" style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
-                  {activePlatforms.map(([platform, handle]) => {
-                    const Icon = getPlatformIcon(platform);
-                    if (!Icon) return null;
-                    const url = getPlatformUrl(platform, handle);
-                    return (
-                      <a 
-                        key={platform} 
-                        href={url} 
-                        target="_blank" 
-                        rel="noreferrer" 
-                        className="bio-social-icon"
-                        title={platform}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          width: '40px',
-                          height: '40px',
-                          borderRadius: '50%',
-                          background: 'rgba(255, 255, 255, 0.1)',
-                          backdropFilter: 'blur(4px)',
-                          border: '1px solid rgba(255, 255, 255, 0.15)',
-                          color: globalFontColor,
-                          transition: 'transform 0.2s, background-color 0.2s',
-                          fontSize: '1.2rem'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = 'scale(1.1)';
-                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = 'scale(1)';
-                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-                        }}
-                      >
-                        <Icon />
-                      </a>
-                    );
-                  })}
+                <div className={`social-rail social-rail-${socialDisplayStyle}`}>
+                  {activePlatforms.map(renderSocialItem)}
                 </div>
               );
             } catch (e) {

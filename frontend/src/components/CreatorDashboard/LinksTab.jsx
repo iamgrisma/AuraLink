@@ -8,6 +8,39 @@ const LINK_TEMPLATES = [
   { title: 'Join my newsletter', url: 'https://substack.com', iconName: 'FaTwitter', buttonStyle: 'outline' },
   { title: 'View portfolio and case studies', url: 'https://your-domain.com', iconName: 'FaGithub', buttonStyle: 'solid' }
 ];
+const AVATAR_DISPLAY_OPTIONS = [
+  { value: 'image', label: 'Image avatar' },
+  { value: 'initial', label: 'Initial monogram' }
+];
+const AVATAR_SIZE_OPTIONS = [
+  { value: 'sm', label: 'Small' },
+  { value: 'md', label: 'Medium' },
+  { value: 'lg', label: 'Large' },
+  { value: 'xl', label: 'Extra large' }
+];
+const AVATAR_FRAME_OPTIONS = [
+  { value: 'animated-border', label: 'Animated border' },
+  { value: 'frame', label: 'Clean frame' },
+  { value: 'glass', label: 'Glass panel' },
+  { value: 'none', label: 'No frame' }
+];
+const SOCIAL_LAYOUT_OPTIONS = [
+  { value: 'icons', label: 'Icon grid' },
+  { value: 'stack', label: 'Stacked rows' },
+  { value: 'pills', label: 'Pills' },
+  { value: 'text', label: 'Text labels' }
+];
+const SOCIAL_TONE_OPTIONS = [
+  { value: 'brand', label: 'Brand colors' },
+  { value: 'mono', label: 'Single color' },
+  { value: 'outline', label: 'Outlined' },
+  { value: 'glass', label: 'Glass' }
+];
+const SOCIAL_SHAPE_OPTIONS = [
+  { value: 'circle', label: 'Circle' },
+  { value: 'rounded', label: 'Rounded' },
+  { value: 'square', label: 'Square' }
+];
 
 export default function LinksTab({
   profile,
@@ -34,6 +67,7 @@ export default function LinksTab({
   handleMoveLink,
   handleDuplicateLink,
   handleAddTemplateLink,
+  handleUpdatePresentation,
   expandedLinkId,
   setExpandedLinkId,
   handleUpdateLinkStyle,
@@ -43,6 +77,7 @@ export default function LinksTab({
   setSocialLink
 }) {
   const activeLinks = profile.links.filter(link => link.active).length;
+  const avatarInitial = (profile.name || username || '?').trim().charAt(0).toUpperCase();
   const checklist = [
     { label: 'Upload a clear profile photo', done: Boolean(profile.avatarUrl) },
     { label: 'Write a specific bio with your offer', done: Boolean(profile.bio && profile.bio.trim().length > 20) },
@@ -68,6 +103,85 @@ export default function LinksTab({
         </div>
       </section>
 
+      <section className="editor-card">
+        <h2 className="card-title">Avatar and Social Presentation</h2>
+        <div className="presentation-grid">
+          <div className="form-group">
+            <label>Avatar content</label>
+            <select
+              className="input-control"
+              value={profile.avatarDisplayMode || 'image'}
+              onChange={(e) => handleUpdatePresentation('avatarDisplayMode', e.target.value)}
+            >
+              {AVATAR_DISPLAY_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Avatar size</label>
+            <select
+              className="input-control"
+              value={profile.avatarSize || 'md'}
+              onChange={(e) => handleUpdatePresentation('avatarSize', e.target.value)}
+            >
+              {AVATAR_SIZE_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Avatar border</label>
+            <select
+              className="input-control"
+              value={profile.avatarFrameStyle || 'animated-border'}
+              onChange={(e) => handleUpdatePresentation('avatarFrameStyle', e.target.value)}
+            >
+              {AVATAR_FRAME_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Social layout</label>
+            <select
+              className="input-control"
+              value={profile.socialDisplayStyle || 'icons'}
+              onChange={(e) => handleUpdatePresentation('socialDisplayStyle', e.target.value)}
+            >
+              {SOCIAL_LAYOUT_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Icon tone</label>
+            <select
+              className="input-control"
+              value={profile.socialIconStyle || 'brand'}
+              onChange={(e) => handleUpdatePresentation('socialIconStyle', e.target.value)}
+            >
+              {SOCIAL_TONE_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Icon shape</label>
+            <select
+              className="input-control"
+              value={profile.socialIconShape || 'circle'}
+              onChange={(e) => handleUpdatePresentation('socialIconShape', e.target.value)}
+            >
+              {SOCIAL_SHAPE_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </select>
+          </div>
+        </div>
+        <div className="presentation-preview">
+          <div className={`avatar-shell avatar-${profile.avatarSize || 'md'} avatar-${profile.avatarFrameStyle || 'animated-border'}`}>
+            {profile.avatarDisplayMode === 'initial' || !profile.avatarUrl ? (
+              <span className="avatar-monogram">{avatarInitial}</span>
+            ) : (
+              <img src={profile.avatarUrl} alt="Avatar Preview" className="avatar-image" />
+            )}
+          </div>
+          <div className="presentation-copy">
+            <strong>Presentation modes</strong>
+            <p>Use an image, a letter mark, or a frame-only profile badge. Social links can read as icon-only, stacked, pills, or text labels.</p>
+          </div>
+        </div>
+      </section>
+
       {/* Profile Info */}
       <section className="editor-card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
@@ -78,7 +192,7 @@ export default function LinksTab({
             </a>
           </p>
         </div>
-        
+
         <div className="form-group" style={{ marginBottom: '1.5rem' }}>
           <label>Avatar Photo (Upload to Cloudflare R2)</label>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginTop: '0.4rem' }}>
@@ -87,23 +201,23 @@ export default function LinksTab({
             ) : (
               <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--bg-tertiary)', border: '1px dashed var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', color: 'var(--text-muted)' }}>No Pic</div>
             )}
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={() => setMediaTarget({ type: 'avatar' })}
-              className="btn btn-secondary" 
+              className="btn btn-secondary"
               style={{ fontSize: '0.8rem', padding: '0.5rem 1rem', margin: 0, cursor: 'pointer' }}
             >
               <ImageIcon size={14} style={{ marginRight: '0.3rem', display: 'inline', verticalAlign: 'text-bottom' }} /> Choose Image
             </button>
             {profile.avatarUrl && (
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => {
                   const updatedProfile = { ...profile, avatarUrl: '' };
                   setProfile(updatedProfile);
                   handleSave(updatedProfile);
                 }}
-                className="btn-text" 
+                className="btn-text"
                 style={{ color: 'var(--danger)', fontSize: '0.8rem' }}
               >
                 Remove
@@ -111,38 +225,38 @@ export default function LinksTab({
             )}
           </div>
         </div>
-        
+
         <div className="form-group" style={{ marginBottom: '1.5rem' }}>
           <label>Display Name</label>
-          <input 
-            type="text" 
-            value={profile.name} 
+          <input
+            type="text"
+            value={profile.name}
             onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-            className="input-control" 
+            className="input-control"
             placeholder="Alex Rivers"
             maxLength={40}
           />
         </div>
-        
+
         <div className="form-group" style={{ marginBottom: '1.5rem' }}>
           <label>Google Analytics Measurement ID (gtag.js)</label>
-          <input 
-            type="text" 
-            value={profile.googleAnalyticsId || ''} 
+          <input
+            type="text"
+            value={profile.googleAnalyticsId || ''}
             onChange={(e) => setProfile({ ...profile, googleAnalyticsId: e.target.value })}
             onBlur={() => handleSave()}
-            className="input-control" 
+            className="input-control"
             placeholder="e.g. G-XXXXXXXXXX"
             maxLength={20}
           />
         </div>
-        
+
         <div className="form-group" style={{ marginBottom: '1.5rem' }}>
           <label>Short Biography</label>
-          <textarea 
-            value={profile.bio} 
+          <textarea
+            value={profile.bio}
             onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-            className="input-control" 
+            className="input-control"
             placeholder="Share a short bio (social handles, products, info...)"
             rows={3}
             maxLength={180}
@@ -156,12 +270,12 @@ export default function LinksTab({
             {['instagram', 'youtube', 'twitter', 'tiktok', 'facebook', 'github', 'linkedin'].map(platform => (
               <div key={platform} style={{ display: 'flex', flexDirection: 'column' }}>
                 <label style={{ fontSize: '0.75rem', textTransform: 'capitalize', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>{platform}</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={getSocialLink(platform)}
                   onChange={(e) => setSocialLink(platform, e.target.value)}
                   onBlur={() => handleSave()}
-                  className="input-control" 
+                  className="input-control"
                   style={{ fontSize: '0.8rem', padding: '0.4rem' }}
                   placeholder={`${platform} username`}
                 />
@@ -172,33 +286,33 @@ export default function LinksTab({
 
         <div className="form-group" style={{ marginBottom: '1.5rem' }}>
           <label style={{ fontWeight: '600' }}>SEO Settings</label>
-          <input 
-            type="text" 
-            value={profile.seo?.title || ''} 
+          <input
+            type="text"
+            value={profile.seo?.title || ''}
             onChange={(e) => {
               const updated = { ...profile, seo: { ...profile.seo, title: e.target.value } };
               setProfile(updated);
             }}
             onBlur={() => handleSave()}
-            className="input-control" 
+            className="input-control"
             placeholder="SEO Meta Title"
             style={{ marginBottom: '0.5rem' }}
           />
-          <textarea 
-            value={profile.seo?.description || ''} 
+          <textarea
+            value={profile.seo?.description || ''}
             onChange={(e) => {
               const updated = { ...profile, seo: { ...profile.seo, description: e.target.value } };
               setProfile(updated);
             }}
             onBlur={() => handleSave()}
-            className="input-control" 
+            className="input-control"
             placeholder="SEO Meta Description"
             rows={2}
             style={{ marginBottom: '0.5rem', resize: 'none' }}
           />
           <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
-            <input 
-              type="checkbox" 
+            <input
+              type="checkbox"
               checked={profile.seo?.allowIndexing !== false}
               onChange={(e) => {
                 const updated = { ...profile, seo: { ...profile.seo, allowIndexing: e.target.checked } };
@@ -214,44 +328,44 @@ export default function LinksTab({
       {/* Change Username Card */}
       <section className="editor-card" style={{ marginBottom: '1.5rem' }}>
         <h2 className="card-title"><User size={18} /> Update Username</h2>
-        
+
         <div className="form-group" style={{ marginBottom: '1rem' }}>
           <label>New Username</label>
           <div style={{ position: 'relative', display: 'flex', gap: '0.5rem' }}>
             <div style={{ position: 'relative', flex: 1 }}>
               <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>@</span>
-              <input 
-                type="text" 
-                value={tempUsername} 
+              <input
+                type="text"
+                value={tempUsername}
                 onChange={(e) => {
                   const val = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
                   setTempUsername(val);
                   setIsUsernameChecked(false);
                 }}
-                className="input-control" 
+                className="input-control"
                 style={{ paddingLeft: '32px' }}
                 placeholder="new_username"
               />
             </div>
-            <button 
-              onClick={handleCheckUsername} 
+            <button
+              onClick={handleCheckUsername}
               disabled={tempUsername === username || tempUsername.length < 3}
               className="btn btn-secondary"
             >
               Check
             </button>
           </div>
-          
+
           {isUsernameChecked && !isUsernameAvailable && (
             <div style={{ fontSize: '0.85rem', marginTop: '0.5rem', color: 'var(--danger)' }}>
-              Username is already taken. 
+              Username is already taken.
               {usernameSuggestions.length > 0 && (
                 <div style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>
-                  Suggestions: 
+                  Suggestions:
                   <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.2rem', flexWrap: 'wrap' }}>
                     {usernameSuggestions.map(sug => (
-                      <button 
-                        key={sug} 
+                      <button
+                        key={sug}
                         onClick={() => { setTempUsername(sug); setIsUsernameChecked(false); }}
                         style={{ padding: '0.2rem 0.5rem', background: 'var(--bg-tertiary)', border: '1px solid var(--border-light)', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}
                       >
@@ -263,14 +377,14 @@ export default function LinksTab({
               )}
             </div>
           )}
-          
+
           {isUsernameChecked && isUsernameAvailable && (
             <p style={{ color: 'var(--success)', fontSize: '0.8rem', marginTop: '0.25rem' }}>Username is available.</p>
           )}
         </div>
-        
-        <button 
-          type="button" 
+
+        <button
+          type="button"
           onClick={handleChangeUsernameSubmit}
           className="btn btn-primary"
           disabled={!isUsernameChecked || !isUsernameAvailable || tempUsername === username || changingUsername}
@@ -285,28 +399,28 @@ export default function LinksTab({
         <form onSubmit={handleAddLink} style={{ display: 'flex', gap: '1rem', flexDirection: 'column' }}>
           <div className="form-group">
             <label>Link Display Title</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
-              className="input-control" 
+              className="input-control"
               placeholder="e.g. Visit My Storefront"
               required
             />
           </div>
-          
+
           <div className="form-group">
             <label>Target URL</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               value={newUrl}
               onChange={(e) => setNewUrl(e.target.value)}
-              className="input-control" 
+              className="input-control"
               placeholder="e.g. https://my-affiliate-shop.com/discount"
               required
             />
           </div>
-          
+
           <button type="submit" className="btn btn-secondary" style={{ width: 'fit-content' }}>
             <Plus size={16} /> Add to List
           </button>
@@ -333,7 +447,7 @@ export default function LinksTab({
       {/* Active Links List */}
       <section className="editor-card">
         <h2 className="card-title"><Link2 size={18} /> Manage Active Links</h2>
-        
+
         {profile.links.length === 0 ? (
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center', padding: '2rem 0' }}>
             No links added yet. Use the form above to add your first link!
@@ -372,16 +486,16 @@ export default function LinksTab({
                       <Copy size={15} />
                     </button>
                     <label className="switch">
-                      <input 
-                        type="checkbox" 
+                      <input
+                        type="checkbox"
                         checked={link.active}
-                        onChange={() => handleToggleLink(link.id)} 
+                        onChange={() => handleToggleLink(link.id)}
                       />
                       <span className="slider"></span>
                     </label>
-                    <button 
-                      onClick={() => handleDeleteLink(link.id)} 
-                      className="btn-text" 
+                    <button
+                      onClick={() => handleDeleteLink(link.id)}
+                      className="btn-text"
                       style={{ color: 'var(--danger)', padding: '0.2rem' }}
                       title="Delete Link"
                     >
@@ -389,23 +503,23 @@ export default function LinksTab({
                     </button>
                   </div>
                 </div>
-                
+
                 <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: '0.75rem' }}>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={link.title}
                     onChange={(e) => handleEditLinkText(link.id, 'title', e.target.value)}
                     onBlur={() => handleSave()}
-                    className="input-control" 
+                    className="input-control"
                     style={{ fontSize: '0.85rem', padding: '0.5rem' }}
                     placeholder="Title"
                   />
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={link.url}
                     onChange={(e) => handleEditLinkText(link.id, 'url', e.target.value)}
                     onBlur={() => handleSave()}
-                    className="input-control" 
+                    className="input-control"
                     style={{ fontSize: '0.85rem', padding: '0.5rem' }}
                     placeholder="URL"
                   />
@@ -415,14 +529,14 @@ export default function LinksTab({
                     <Settings size={14} style={{ display: 'inline', verticalAlign: 'text-bottom' }} /> {expandedLinkId === link.id ? 'Close Settings' : 'Customize Style'}
                   </button>
                 </div>
-                
+
                 {expandedLinkId === link.id && (
                   <div style={{ padding: '1rem', background: 'var(--bg-tertiary)', borderRadius: '8px', marginTop: '0.5rem', fontSize: '0.85rem' }}>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
                       <input type="checkbox" checked={link.showUrl} onChange={(e) => handleUpdateLinkStyle(link.id, 'showUrl', e.target.checked)} />
                       Show URL below title
                     </label>
-                    
+
                     {proStatus === "approved" && (
                       <>
                         <div style={{ marginBottom: '1rem', padding: '0.5rem', border: '1px solid var(--accent-secondary)', borderRadius: '4px' }}>
@@ -433,10 +547,11 @@ export default function LinksTab({
                           {link.linkType === 'product' && (
                             <div style={{ display: 'flex', gap: '0.5rem' }}>
                               <input type="number" value={link.price || 0} onChange={(e) => handleUpdateLinkStyle(link.id, 'price', parseFloat(e.target.value))} onBlur={() => handleSave()} className="input-control" placeholder="Price" />
-                              <select value={link.currency || 'USD'} onChange={(e) => handleUpdateLinkStyle(link.id, 'currency', e.target.value)} className="input-control">
+                              <select value={link.currency || 'NPR'} onChange={(e) => handleUpdateLinkStyle(link.id, 'currency', e.target.value)} className="input-control">
                                 <option value="USD">USD</option>
                                 <option value="EUR">EUR</option>
                                 <option value="GBP">GBP</option>
+                                <option value="NPR">NPR</option>
                               </select>
                             </div>
                           )}
@@ -447,29 +562,29 @@ export default function LinksTab({
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                             <div>
                               <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Show From</label>
-                              <input 
-                                type="datetime-local" 
-                                value={link.startDate || ''} 
-                                onChange={(e) => handleUpdateLinkStyle(link.id, 'startDate', e.target.value)} 
-                                className="input-control" 
-                                style={{ fontSize: '0.75rem', padding: '0.3rem' }} 
+                              <input
+                                type="datetime-local"
+                                value={link.startDate || ''}
+                                onChange={(e) => handleUpdateLinkStyle(link.id, 'startDate', e.target.value)}
+                                className="input-control"
+                                style={{ fontSize: '0.75rem', padding: '0.3rem' }}
                               />
                             </div>
                             <div>
                               <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Hide From</label>
-                              <input 
-                                type="datetime-local" 
-                                value={link.endDate || ''} 
-                                onChange={(e) => handleUpdateLinkStyle(link.id, 'endDate', e.target.value)} 
-                                className="input-control" 
-                                style={{ fontSize: '0.75rem', padding: '0.3rem' }} 
+                              <input
+                                type="datetime-local"
+                                value={link.endDate || ''}
+                                onChange={(e) => handleUpdateLinkStyle(link.id, 'endDate', e.target.value)}
+                                className="input-control"
+                                style={{ fontSize: '0.75rem', padding: '0.3rem' }}
                               />
                             </div>
                           </div>
                         </div>
                       </>
                     )}
-                    
+
                     <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
                       <div style={{ flex: 1 }}>
                         <label>Icon</label>
@@ -481,8 +596,8 @@ export default function LinksTab({
                       <div style={{ flex: 1 }}>
                         <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           Custom Image URL
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             onClick={() => setMediaTarget({ type: 'link', id: link.id })}
                             style={{ background: 'transparent', border: 'none', color: 'var(--accent-primary)', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem' }}
                           >
@@ -520,60 +635,60 @@ export default function LinksTab({
                       <div>
                         <label>Bg Color</label>
                         <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
-                          <input 
-                            type="color" 
-                            value={link.buttonColor && link.buttonColor.startsWith('#') ? link.buttonColor : '#3b82f6'} 
+                          <input
+                            type="color"
+                            value={link.buttonColor && link.buttonColor.startsWith('#') ? link.buttonColor : '#3b82f6'}
                             onChange={(e) => handleUpdateLinkStyle(link.id, 'buttonColor', e.target.value)}
-                            style={{ width: '36px', height: '36px', padding: 0, border: 'none', cursor: 'pointer', borderRadius: '4px', background: 'transparent' }} 
+                            style={{ width: '36px', height: '36px', padding: 0, border: 'none', cursor: 'pointer', borderRadius: '4px', background: 'transparent' }}
                           />
-                          <input 
-                            type="text" 
-                            value={link.buttonColor || ''} 
-                            onChange={(e) => handleUpdateLinkStyle(link.id, 'buttonColor', e.target.value)} 
-                            onBlur={() => handleSave()} 
-                            className="input-control" 
+                          <input
+                            type="text"
+                            value={link.buttonColor || ''}
+                            onChange={(e) => handleUpdateLinkStyle(link.id, 'buttonColor', e.target.value)}
+                            onBlur={() => handleSave()}
+                            className="input-control"
                             style={{ flex: 1, padding: '0.4rem' }}
-                            placeholder="Inherit" 
+                            placeholder="Inherit"
                           />
                         </div>
                       </div>
                       <div>
                         <label>Text Color</label>
                         <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
-                          <input 
-                            type="color" 
-                            value={link.buttonTextColor && link.buttonTextColor.startsWith('#') ? link.buttonTextColor : '#ffffff'} 
+                          <input
+                            type="color"
+                            value={link.buttonTextColor && link.buttonTextColor.startsWith('#') ? link.buttonTextColor : '#ffffff'}
                             onChange={(e) => handleUpdateLinkStyle(link.id, 'buttonTextColor', e.target.value)}
-                            style={{ width: '36px', height: '36px', padding: 0, border: 'none', cursor: 'pointer', borderRadius: '4px', background: 'transparent' }} 
+                            style={{ width: '36px', height: '36px', padding: 0, border: 'none', cursor: 'pointer', borderRadius: '4px', background: 'transparent' }}
                           />
-                          <input 
-                            type="text" 
-                            value={link.buttonTextColor || ''} 
-                            onChange={(e) => handleUpdateLinkStyle(link.id, 'buttonTextColor', e.target.value)} 
-                            onBlur={() => handleSave()} 
-                            className="input-control" 
+                          <input
+                            type="text"
+                            value={link.buttonTextColor || ''}
+                            onChange={(e) => handleUpdateLinkStyle(link.id, 'buttonTextColor', e.target.value)}
+                            onBlur={() => handleSave()}
+                            className="input-control"
                             style={{ flex: 1, padding: '0.4rem' }}
-                            placeholder="Inherit" 
+                            placeholder="Inherit"
                           />
                         </div>
                       </div>
                       <div style={{ gridColumn: 'span 2' }}>
                         <label>Border Color</label>
                         <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
-                          <input 
-                            type="color" 
-                            value={link.buttonBorderColor && link.buttonBorderColor.startsWith('#') ? link.buttonBorderColor : '#cccccc'} 
+                          <input
+                            type="color"
+                            value={link.buttonBorderColor && link.buttonBorderColor.startsWith('#') ? link.buttonBorderColor : '#cccccc'}
                             onChange={(e) => handleUpdateLinkStyle(link.id, 'buttonBorderColor', e.target.value)}
-                            style={{ width: '36px', height: '36px', padding: 0, border: 'none', cursor: 'pointer', borderRadius: '4px', background: 'transparent' }} 
+                            style={{ width: '36px', height: '36px', padding: 0, border: 'none', cursor: 'pointer', borderRadius: '4px', background: 'transparent' }}
                           />
-                          <input 
-                            type="text" 
-                            value={link.buttonBorderColor || ''} 
-                            onChange={(e) => handleUpdateLinkStyle(link.id, 'buttonBorderColor', e.target.value)} 
-                            onBlur={() => handleSave()} 
-                            className="input-control" 
+                          <input
+                            type="text"
+                            value={link.buttonBorderColor || ''}
+                            onChange={(e) => handleUpdateLinkStyle(link.id, 'buttonBorderColor', e.target.value)}
+                            onBlur={() => handleSave()}
+                            className="input-control"
                             style={{ flex: 1, padding: '0.4rem' }}
-                            placeholder="Inherit" 
+                            placeholder="Inherit"
                           />
                         </div>
                       </div>

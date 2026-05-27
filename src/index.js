@@ -1,5 +1,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { sign, verify } from 'hono/jwt';
+import { setCookie, getCookie, deleteCookie } from 'hono/cookie';
 
 const app = new Hono();
 
@@ -35,21 +37,80 @@ async function checkAndEnforceMembership(db, username) {
   }
 }
 
+// Simple IP Rate Limiting (in-memory for auth)
+const rateLimits = new Map();
+function checkRateLimit(ip, limit, windowMs) {
+  const now = Date.now();
+  const record = rateLimits.get(ip) || { count: 0, resetAt: now + windowMs };
+  if (now > record.resetAt) {
+    record.count = 1;
+    record.resetAt = now + windowMs;
+  } else {
+    record.count++;
+  }
+  rateLimits.set(ip, record);
+  return record.count <= limit;
+}
+
 // Enable CORS
-app.use('/api/*', cors());
+app.use('/api/*', cors({
+  origin: (origin) => origin,
+  credentials: true,
+}));
+
+// Auth Middleware
+const authMiddleware = async (c, next) => {
+  const token = getCookie(c, 'auralink_session');
+  if (!token) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+  try {
+    const secret = c.env.JWT_SECRET || 'fallback_secret_do_not_use_in_prod';
+    const payload = await verify(token, secret);
+    c.set('user', payload);
+    await next();
+  } catch (err) {
+    return c.json({ error: 'Invalid token' }, 401);
+  }
+};
+
+// Admin Middleware
+const adminMiddleware = async (c, next) => {
+  const user = c.get('user');
+  if (!user || user.role !== 'admin') {
+    return c.json({ error: 'Forbidden' }, 403);
+  }
+  await next();
+};
 
 // --- AUTHENTICATION ---
 
 // Register
 app.post('/api/auth/register', async (c) => {
+  const ip = c.req.header('cf-connecting-ip') || 'unknown';
+  if (!checkRateLimit(ip, 5, 60000)) { // 5 attempts per minute
+    return c.json({ error: 'Too many requests. Please try again later.' }, 429);
+  }
+
   const { username, password } = await c.req.json();
   if (!username || !password) {
     return c.json({ error: 'Username and password are required' }, 400);
   }
 
   const cleanUsername = username.trim().toLowerCase();
+  
+  // Username Validation Rules
+  const reservedWords = ['admin', 'api', 'images', 'auth', 'dashboard', 'pro', 'settings', 'login', 'register'];
   if (cleanUsername.length < 4 || !/^[a-z0-9_]+$/.test(cleanUsername)) {
     return c.json({ error: 'Username must be at least 4 characters and contain only letters, numbers, and underscores' }, 400);
+  }
+  if (reservedWords.includes(cleanUsername)) {
+    return c.json({ error: 'This username is reserved and cannot be used.' }, 400);
+  }
+
+  // Password validation (basic)
+  if (password.length < 8) {
+     return c.json({ error: 'Password must be at least 8 characters long.' }, 400);
   }
 
   try {
@@ -69,23 +130,41 @@ app.post('/api/auth/register', async (c) => {
     await c.env.DB.batch([
       c.env.DB.prepare("INSERT INTO users (id, username, password_hash, role, pro_status, account_status) VALUES (?, ?, ?, 'user', 'none', 'active')")
         .bind(userId, cleanUsername, hashedPassword),
-      c.env.DB.prepare('INSERT INTO profiles (username, name, bio, avatar_url, background_type, background_value, font, button_style, button_color, button_text_color, button_border_color) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+      c.env.DB.prepare('INSERT INTO profiles (username, name, bio, avatar_url, avatar_display_mode, avatar_size, avatar_frame_style, background_type, background_value, font, button_style, button_color, button_text_color, button_border_color, social_display_style, social_icon_style, social_icon_shape) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
         .bind(
           cleanUsername,
           username,
           'Welcome to my new link page!',
           '',
+          'image',
+          'md',
+          'animated-border',
           'gradient',
           'linear-gradient(135deg, #0f172a, #1e293b)',
           'Inter',
           'solid',
           '#3b82f6',
           '#ffffff',
-          'transparent'
+          'transparent',
+          'icons',
+          'brand',
+          'circle'
         ),
       c.env.DB.prepare('INSERT INTO links (id, username, title, url, is_active, display_order) VALUES (?, ?, ?, ?, 1, 0)')
         .bind(crypto.randomUUID(), cleanUsername, 'Start here', 'https://example.com')
     ]);
+
+    // Generate JWT
+    const secret = c.env.JWT_SECRET || 'fallback_secret_do_not_use_in_prod';
+    const token = await sign({ id: userId, username: cleanUsername, role: 'user' }, secret);
+    
+    setCookie(c, 'auralink_session', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'Strict',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7 // 7 days
+    });
 
     return c.json({
       message: 'User registered successfully',
@@ -100,6 +179,11 @@ app.post('/api/auth/register', async (c) => {
 
 // Login
 app.post('/api/auth/login', async (c) => {
+  const ip = c.req.header('cf-connecting-ip') || 'unknown';
+  if (!checkRateLimit(ip, 5, 60000)) { // 5 attempts per minute
+    return c.json({ error: 'Too many requests. Please try again later.' }, 429);
+  }
+
   const { username, password } = await c.req.json();
   if (!username || !password) {
     return c.json({ error: 'Username and password are required' }, 400);
@@ -108,7 +192,7 @@ app.post('/api/auth/login', async (c) => {
   const cleanUsername = username.trim().toLowerCase();
 
   try {
-    const user = await c.env.DB.prepare('SELECT username, password_hash, role, pro_status, account_status FROM users WHERE username = ?')
+    const user = await c.env.DB.prepare('SELECT id, username, password_hash, role, pro_status, account_status FROM users WHERE username = ?')
       .bind(cleanUsername)
       .first();
 
@@ -122,6 +206,18 @@ app.post('/api/auth/login', async (c) => {
       return c.json({ error: 'This account is suspended' }, 403);
     }
 
+    // Generate JWT
+    const secret = c.env.JWT_SECRET || 'fallback_secret_do_not_use_in_prod';
+    const token = await sign({ id: user.id, username: user.username, role: user.role }, secret);
+    
+    setCookie(c, 'auralink_session', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'Strict',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7
+    });
+
     return c.json({
       message: 'Login successful',
       user: { username: user.username, role: user.role, proStatus: user.pro_status }
@@ -133,6 +229,11 @@ app.post('/api/auth/login', async (c) => {
 
 // Google OAuth Login / Signup
 app.post('/api/auth/google', async (c) => {
+  const ip = c.req.header('cf-connecting-ip') || 'unknown';
+  if (!checkRateLimit(ip, 5, 60000)) { // 5 attempts per minute
+    return c.json({ error: 'Too many requests. Please try again later.' }, 429);
+  }
+
   const { credential } = await c.req.json();
   if (!credential) return c.json({ error: 'Missing credential' }, 400);
 
@@ -146,7 +247,7 @@ app.post('/api/auth/google', async (c) => {
     const name = googleUser.name;
     const defaultUsername = email.split('@')[0] + Math.floor(Math.random() * 1000);
 
-    let user = await c.env.DB.prepare('SELECT username, role, pro_status, account_status FROM users WHERE google_id = ? OR email = ?')
+    let user = await c.env.DB.prepare('SELECT id, username, role, pro_status, account_status FROM users WHERE google_id = ? OR email = ?')
       .bind(googleId, email).first();
 
     if (!user) {
@@ -158,12 +259,24 @@ app.post('/api/auth/google', async (c) => {
         c.env.DB.prepare("INSERT INTO profiles (username, name, bio, background_type, background_value, font, button_style, button_color, button_text_color, button_border_color) VALUES (?, ?, ?, 'gradient', 'linear-gradient(135deg, #0f172a, #1e293b)', 'Inter', 'solid', '#3b82f6', '#ffffff', 'transparent')")
           .bind(defaultUsername, name, 'Welcome to my new link page!')
       ]);
-      user = { username: defaultUsername, role: 'user', pro_status: 'none', account_status: 'active' };
+      user = { id: userId, username: defaultUsername, role: 'user', pro_status: 'none', account_status: 'active' };
     }
 
     if (user.account_status === 'suspended') {
       return c.json({ error: 'This account is suspended' }, 403);
     }
+
+    // Generate JWT
+    const secret = c.env.JWT_SECRET || 'fallback_secret_do_not_use_in_prod';
+    const token = await sign({ id: user.id, username: user.username, role: user.role }, secret);
+    
+    setCookie(c, 'auralink_session', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'Strict',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7
+    });
 
     return c.json({
       message: 'Login successful',
@@ -173,6 +286,32 @@ app.post('/api/auth/google', async (c) => {
     console.error(err);
     return c.json({ error: 'Google auth failed' }, 500);
   }
+});
+
+// Check Session / Get Current User
+app.get('/api/auth/me', authMiddleware, async (c) => {
+  const userPayload = c.get('user');
+  try {
+    const user = await c.env.DB.prepare('SELECT username, role, pro_status, account_status FROM users WHERE id = ?')
+      .bind(userPayload.id)
+      .first();
+
+    if (!user || user.account_status === 'suspended') {
+       return c.json({ error: 'User not found or suspended' }, 401);
+    }
+    
+    return c.json({
+      user: { username: user.username, role: user.role, proStatus: user.pro_status }
+    });
+  } catch (err) {
+    return c.json({ error: 'Database error' }, 500);
+  }
+});
+
+// Logout
+app.post('/api/auth/logout', async (c) => {
+  deleteCookie(c, 'auralink_session', { path: '/' });
+  return c.json({ message: 'Logged out successfully' });
 });
 
 // --- PROFILES ---
@@ -223,19 +362,25 @@ app.get('/api/profile/:username', async (c) => {
       if (user) {
         // User exists but has no profile, auto-create profile and default link
         await c.env.DB.batch([
-          c.env.DB.prepare('INSERT INTO profiles (username, name, bio, avatar_url, background_type, background_value, font, button_style, button_color, button_text_color, button_border_color) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+          c.env.DB.prepare('INSERT INTO profiles (username, name, bio, avatar_url, avatar_display_mode, avatar_size, avatar_frame_style, background_type, background_value, font, button_style, button_color, button_text_color, button_border_color, social_display_style, social_icon_style, social_icon_shape) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
             .bind(
               cleanUsername,
               cleanUsername,
               'Welcome to my new link page!',
               '',
+              'image',
+              'md',
+              'animated-border',
               'gradient',
               'linear-gradient(135deg, #0f172a, #1e293b)',
               'Inter',
               'solid',
               '#3b82f6',
               '#ffffff',
-              'transparent'
+              'transparent',
+              'icons',
+              'brand',
+              'circle'
             ),
           c.env.DB.prepare('INSERT INTO links (id, username, title, url, is_active, display_order) VALUES (?, ?, ?, ?, 1, 0)')
             .bind(crypto.randomUUID(), cleanUsername, 'Start here', 'https://example.com')
@@ -269,6 +414,9 @@ app.get('/api/profile/:username', async (c) => {
       name: profile.name,
       bio: profile.bio,
       avatarUrl: profile.avatar_url,
+      avatarDisplayMode: profile.avatar_display_mode || 'image',
+      avatarSize: profile.avatar_size || 'md',
+      avatarFrameStyle: profile.avatar_frame_style || 'animated-border',
       theme: {
         backgroundType: profile.background_type,
         backgroundValue: profile.background_value,
@@ -290,6 +438,9 @@ app.get('/api/profile/:username', async (c) => {
       showWatermark: Boolean(profile.show_watermark !== 0),
       customCss: profile.custom_css,
       socialLinksJson: profile.social_links_json,
+      socialDisplayStyle: profile.social_display_style || 'icons',
+      socialIconStyle: profile.social_icon_style || 'brand',
+      socialIconShape: profile.social_icon_shape || 'circle',
       links: links.map(l => ({
         id: l.id,
         title: l.title,
@@ -320,9 +471,42 @@ app.get('/api/profile/:username', async (c) => {
 });
 
 // Update Profile
-app.put('/api/profile/:username', async (c) => {
+app.put('/api/profile/:username', authMiddleware, async (c) => {
   const cleanUsername = c.req.param('username').trim().toLowerCase();
-  const { name, bio, avatarUrl, theme, seo, links, googleAnalyticsId, showWatermark, customCss, socialLinksJson } = await c.req.json();
+  
+  // Ownership check
+  const user = c.get('user');
+  if (user.username !== cleanUsername && user.role !== 'admin') {
+    return c.json({ error: 'Forbidden' }, 403);
+  }
+
+  const { name, bio, avatarUrl, avatarDisplayMode, avatarSize, avatarFrameStyle, theme, seo, links, googleAnalyticsId, showWatermark, customCss, socialLinksJson, socialDisplayStyle, socialIconStyle, socialIconShape } = await c.req.json();
+
+  // Validate Google Analytics ID (basic G-XXXXXXX or UA-XXXXX-Y format)
+  if (googleAnalyticsId && !/^G-[A-Z0-9]+$/.test(googleAnalyticsId) && !/^UA-\d+-\d+$/.test(googleAnalyticsId)) {
+    return c.json({ error: 'Invalid Google Analytics ID format' }, 400);
+  }
+
+  // Validate URLs
+  const isValidUrl = (string) => {
+    try {
+      new URL(string);
+      return true;
+    } catch (_) {
+      return false;  
+    }
+  };
+
+  if (links && Array.isArray(links)) {
+    for (const link of links) {
+       if (link.url && !isValidUrl(link.url)) {
+          return c.json({ error: `Invalid URL provided for link: ${link.title || link.url}` }, 400);
+       }
+       if (link.imageUrl && !isValidUrl(link.imageUrl) && !link.imageUrl.startsWith('/')) {
+          return c.json({ error: `Invalid Image URL provided for link: ${link.title}` }, 400);
+       }
+    }
+  }
 
   try {
     // 1. Update profiles table
@@ -331,6 +515,9 @@ app.put('/api/profile/:username', async (c) => {
         name = COALESCE(?, name),
         bio = COALESCE(?, bio),
         avatar_url = COALESCE(?, avatar_url),
+        avatar_display_mode = COALESCE(?, avatar_display_mode),
+        avatar_size = COALESCE(?, avatar_size),
+        avatar_frame_style = COALESCE(?, avatar_frame_style),
         background_type = COALESCE(?, background_type),
         background_value = COALESCE(?, background_value),
         font = COALESCE(?, font),
@@ -346,12 +533,18 @@ app.put('/api/profile/:username', async (c) => {
         show_watermark = COALESCE(?, show_watermark),
         custom_css = COALESCE(?, custom_css),
         social_links_json = COALESCE(?, social_links_json),
+        social_display_style = COALESCE(?, social_display_style),
+        social_icon_style = COALESCE(?, social_icon_style),
+        social_icon_shape = COALESCE(?, social_icon_shape),
         updated_at = CURRENT_TIMESTAMP
       WHERE username = ?
     `).bind(
       name,
       bio,
       avatarUrl,
+      avatarDisplayMode,
+      avatarSize,
+      avatarFrameStyle,
       theme?.backgroundType,
       theme?.backgroundValue,
       theme?.font,
@@ -367,6 +560,9 @@ app.put('/api/profile/:username', async (c) => {
       showWatermark === undefined ? null : (showWatermark ? 1 : 0),
       customCss === undefined ? null : customCss,
       socialLinksJson === undefined ? null : socialLinksJson,
+      socialDisplayStyle,
+      socialIconStyle,
+      socialIconShape,
       cleanUsername
     ).run();
 
@@ -419,6 +615,9 @@ app.put('/api/profile/:username', async (c) => {
       name: profile.name,
       bio: profile.bio,
       avatarUrl: profile.avatar_url,
+      avatarDisplayMode: profile.avatar_display_mode || 'image',
+      avatarSize: profile.avatar_size || 'md',
+      avatarFrameStyle: profile.avatar_frame_style || 'animated-border',
       theme: {
         backgroundType: profile.background_type,
         backgroundValue: profile.background_value,
@@ -437,6 +636,9 @@ app.put('/api/profile/:username', async (c) => {
       showWatermark: Boolean(profile.show_watermark !== 0),
       customCss: profile.custom_css,
       socialLinksJson: profile.social_links_json,
+      socialDisplayStyle: profile.social_display_style || 'icons',
+      socialIconStyle: profile.social_icon_style || 'brand',
+      socialIconShape: profile.social_icon_shape || 'circle',
       links: dbLinks.map(l => ({
         id: l.id,
         title: l.title,

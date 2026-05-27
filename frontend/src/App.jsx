@@ -9,8 +9,21 @@ import { ToastProvider } from './components/ToastContext';
 
 function App() {
   const [currentPath, setCurrentPath] = useState(window.location.pathname || '/');
-  const [user, setUser] = useState(null);
-  const [role, setRole] = useState('user');
+  const [user, setUser] = useState(() => {
+    const cachedUser = localStorage.getItem('auralink_user');
+    if (cachedUser) {
+      try { return JSON.parse(cachedUser).username; } catch (e) { return null; }
+    }
+    return null;
+  });
+  
+  const [role, setRole] = useState(() => {
+    const cachedUser = localStorage.getItem('auralink_user');
+    if (cachedUser) {
+      try { return JSON.parse(cachedUser).role || 'user'; } catch (e) { return 'user'; }
+    }
+    return 'user';
+  });
 
   // Sync state on popstate change and handle legacy hashes
   useEffect(() => {
@@ -39,17 +52,7 @@ function App() {
       }
     }
 
-    // Check if session exists on load
-    const cachedUser = localStorage.getItem('auralink_user');
-    if (cachedUser) {
-      try {
-        const userObj = JSON.parse(cachedUser);
-        setUser(userObj.username);
-        setRole(userObj.role || 'user');
-      } catch (e) {
-        localStorage.removeItem('auralink_user');
-      }
-    }
+    // Session is now checked synchronously in useState
 
     return () => {
       window.removeEventListener('popstate', handlePopState);

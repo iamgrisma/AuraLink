@@ -26,32 +26,18 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- Profiles Table
-CREATE TABLE IF NOT EXISTS profiles (
+DROP TABLE IF EXISTS profiles;
+
+CREATE TABLE profiles (
     username TEXT PRIMARY KEY,
     name TEXT,
     bio TEXT,
     avatar_url TEXT,
-    avatar_display_mode TEXT DEFAULT 'image',
-    avatar_size TEXT DEFAULT 'md',
-    avatar_frame_style TEXT DEFAULT 'animated-border',
-    background_type TEXT DEFAULT 'gradient',
-    background_value TEXT DEFAULT 'linear-gradient(135deg, #0f172a, #1e293b)',
-    font TEXT DEFAULT 'Inter',
-    button_style TEXT DEFAULT 'solid',
-    button_color TEXT DEFAULT '#3b82f6',
-    button_text_color TEXT DEFAULT '#ffffff',
-    button_border_color TEXT DEFAULT 'transparent',
-    font_color TEXT DEFAULT '#ffffff',
-    google_analytics_id TEXT,
-    seo_title TEXT,
-    seo_description TEXT,
-    allow_indexing INTEGER DEFAULT 1,
-    show_watermark INTEGER DEFAULT 1,
-    custom_css TEXT,
+    theme_config TEXT,
+    seo_config TEXT,
     social_links_json TEXT,
-    social_display_style TEXT DEFAULT 'icons',
-    social_icon_style TEXT DEFAULT 'brand',
-    social_icon_shape TEXT DEFAULT 'circle',
+    show_watermark INTEGER DEFAULT 1,
+    google_analytics_id TEXT,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -155,10 +141,10 @@ INSERT OR IGNORE INTO users (id, username, password_hash, pro_status, role) VALU
 ('u2', 'demo', 'f472823f419e3a9921969bea8c34d61f9be02eca576600728508992ee7df16e1', 'none', 'user'),
 ('u3', 'admin', '3482ddd3a33b95f3392351da63c4fbc2301825445ce189e1111149d66cac46a8', 'approved', 'admin');
 
-INSERT OR IGNORE INTO profiles (username, name, bio, avatar_url, background_type, background_value, font, button_style, button_color, button_text_color, button_border_color) VALUES
-('creator1', 'Alex Rivers', 'Digital Creator & Tech Reviewer. Sharing my favorite gear, templates, and courses.', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80', 'gradient', 'linear-gradient(135deg, #1e1b4b, #311042)', 'Outfit', 'glassmorphic', 'rgba(255, 255, 255, 0.1)', '#ffffff', 'rgba(255, 255, 255, 0.2)'),
-('demo', 'Jane Doe', 'Minimalist Designer & Writer. Building clean interfaces and writing monthly letters.', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&h=256&q=80', 'flat', '#0f172a', 'Inter', 'solid', '#3b82f6', '#ffffff', 'transparent'),
-('admin', 'Admin Staff', 'AuraLink Platform Administrator.', '', 'gradient', 'linear-gradient(135deg, #0f172a, #1e293b)', 'Inter', 'solid', '#3b82f6', '#ffffff', 'transparent');
+INSERT OR IGNORE INTO profiles (username, name, bio, avatar_url, theme_config, seo_config, social_links_json, show_watermark) VALUES
+('creator1', 'Alex Rivers', 'Digital Creator & Tech Reviewer. Sharing my favorite gear, templates, and courses.', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80', '{"backgroundType":"gradient","backgroundValue":"linear-gradient(135deg, #1e1b4b, #311042)","font":"Outfit","buttonStyle":"glassmorphic","buttonColor":"rgba(255, 255, 255, 0.1)","buttonTextColor":"#ffffff","buttonBorderColor":"rgba(255, 255, 255, 0.2)"}', '{"title":"","description":"","allowIndexing":true}', '[]', 1),
+('demo', 'Jane Doe', 'Minimalist Designer & Writer. Building clean interfaces and writing monthly letters.', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&h=256&q=80', '{"backgroundType":"flat","backgroundValue":"#0f172a","font":"Inter","buttonStyle":"solid","buttonColor":"#3b82f6","buttonTextColor":"#ffffff","buttonBorderColor":"transparent"}', '{"title":"","description":"","allowIndexing":true}', '[]', 1),
+('admin', 'Admin Staff', 'AuraLink Platform Administrator.', '', '{"backgroundType":"gradient","backgroundValue":"linear-gradient(135deg, #0f172a, #1e293b)","font":"Inter","buttonStyle":"solid","buttonColor":"#3b82f6","buttonTextColor":"#ffffff","buttonBorderColor":"transparent"}', '{"title":"","description":"","allowIndexing":true}', '[]', 1);
 
 INSERT OR IGNORE INTO links (id, username, title, url, is_active, display_order) VALUES
 ('link-1', 'creator1', '🎥 My YouTube Channel', 'https://youtube.com', 1, 0),

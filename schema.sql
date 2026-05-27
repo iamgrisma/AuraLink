@@ -1,3 +1,12 @@
+-- ============================================================
+-- AuraLink Database Schema (Cloudflare D1 / SQLite)
+-- ============================================================
+-- NOTE: No FOREIGN KEY constraints are used intentionally.
+-- Cloudflare D1's dashboard crashes with deep ON DELETE CASCADE
+-- chains. Referential integrity is enforced in application code
+-- (see batch updates in username change, profile creation, etc.)
+-- ============================================================
+
 -- Users Table
 CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
@@ -15,7 +24,6 @@ CREATE TABLE IF NOT EXISTS users (
     pro_expires_at DATETIME,
     pro_requested_at DATETIME
 );
-
 
 -- Profiles Table
 CREATE TABLE IF NOT EXISTS profiles (
@@ -38,14 +46,13 @@ CREATE TABLE IF NOT EXISTS profiles (
     show_watermark INTEGER DEFAULT 1,
     custom_css TEXT,
     social_links_json TEXT,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Links Table
 CREATE TABLE IF NOT EXISTS links (
     id TEXT PRIMARY KEY,
-    username TEXT REFERENCES profiles(username) ON DELETE CASCADE,
+    username TEXT,
     title TEXT NOT NULL,
     url TEXT NOT NULL,
     is_active INTEGER DEFAULT 1,
@@ -69,7 +76,7 @@ CREATE TABLE IF NOT EXISTS links (
 -- Analytics Views Table (Page Hits)
 CREATE TABLE IF NOT EXISTS analytics_views (
     id TEXT PRIMARY KEY,
-    username TEXT REFERENCES profiles(username) ON DELETE CASCADE,
+    username TEXT,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     referrer TEXT DEFAULT 'Direct',
     user_agent TEXT,
@@ -79,8 +86,8 @@ CREATE TABLE IF NOT EXISTS analytics_views (
 -- Analytics Clicks Table (Link Clicks)
 CREATE TABLE IF NOT EXISTS analytics_clicks (
     id TEXT PRIMARY KEY,
-    username TEXT REFERENCES profiles(username) ON DELETE CASCADE,
-    link_id TEXT REFERENCES links(id) ON DELETE CASCADE,
+    username TEXT,
+    link_id TEXT,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     user_agent TEXT
 );
@@ -88,11 +95,43 @@ CREATE TABLE IF NOT EXISTS analytics_clicks (
 -- Profile Reports Table
 CREATE TABLE IF NOT EXISTS profile_reports (
     id TEXT PRIMARY KEY,
-    reported_username TEXT REFERENCES profiles(username) ON DELETE CASCADE,
-    reporter_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+    reported_username TEXT,
+    reporter_id TEXT,
     reason TEXT NOT NULL,
     status TEXT DEFAULT 'pending',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- User Media Table (To avoid R2 list Class A operations)
+CREATE TABLE IF NOT EXISTS user_media (
+    id TEXT PRIMARY KEY,
+    username TEXT,
+    file_key TEXT NOT NULL,
+    size INTEGER NOT NULL,
+    content_type TEXT,
+    uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- App Settings Table
+CREATE TABLE IF NOT EXISTS app_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Payment Logs Table
+CREATE TABLE IF NOT EXISTS payment_logs (
+    id TEXT PRIMARY KEY,
+    username TEXT NOT NULL,
+    amount REAL NOT NULL,
+    currency TEXT DEFAULT 'NPR',
+    transaction_id TEXT,
+    payment_method TEXT DEFAULT 'QR Code',
+    status TEXT DEFAULT 'pending',
+    receipt_image_url TEXT,
+    admin_notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Indexes for Scalability
@@ -100,6 +139,9 @@ CREATE INDEX IF NOT EXISTS idx_links_username ON links(username);
 CREATE INDEX IF NOT EXISTS idx_reports_status ON profile_reports(status);
 CREATE INDEX IF NOT EXISTS idx_analytics_views_username ON analytics_views(username);
 CREATE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id);
+CREATE INDEX IF NOT EXISTS idx_user_media_username ON user_media(username);
+CREATE INDEX IF NOT EXISTS idx_payment_logs_username ON payment_logs(username);
+CREATE INDEX IF NOT EXISTS idx_payment_logs_status ON payment_logs(status);
 
 -- Seed Initial Demo Data
 INSERT OR IGNORE INTO users (id, username, password_hash, pro_status, role) VALUES 
@@ -142,47 +184,9 @@ INSERT OR IGNORE INTO analytics_clicks (id, username, link_id, timestamp) VALUES
 ('c6', 'creator1', 'link-1', '2026-05-21 10:05:00'),
 ('c7', 'creator1', 'link-4', '2026-05-21 10:35:00');
 
--- User Media Table (To avoid R2 list Class A operations)
-CREATE TABLE IF NOT EXISTS user_media (
-    id TEXT PRIMARY KEY,
-    username TEXT REFERENCES profiles(username) ON DELETE CASCADE,
-    file_key TEXT NOT NULL,
-    size INTEGER NOT NULL,
-    content_type TEXT,
-    uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX IF NOT EXISTS idx_user_media_username ON user_media(username);
-
--- App Settings Table
-CREATE TABLE IF NOT EXISTS app_settings (
-    key TEXT PRIMARY KEY,
-    value TEXT NOT NULL,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
 -- Seed Default Settings
 INSERT OR IGNORE INTO app_settings (key, value) VALUES
 ('membership_price_nrs', '100'),
 ('admin_whatsapp', '9779844245717'),
 ('admin_payment_instructions', 'Send exactly Rs. 100 via QR and put your username in the remarks.'),
 ('payment_qr_url', '');
-
--- Payment Logs Table
-CREATE TABLE IF NOT EXISTS payment_logs (
-    id TEXT PRIMARY KEY,
-    username TEXT NOT NULL REFERENCES users(username) ON DELETE CASCADE,
-    amount REAL NOT NULL,
-    currency TEXT DEFAULT 'NPR',
-    transaction_id TEXT,
-    payment_method TEXT DEFAULT 'QR Code',
-    status TEXT DEFAULT 'pending', -- 'pending', 'approved', 'rejected'
-    receipt_image_url TEXT,
-    admin_notes TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX IF NOT EXISTS idx_payment_logs_username ON payment_logs(username);
-CREATE INDEX IF NOT EXISTS idx_payment_logs_status ON payment_logs(status);
-

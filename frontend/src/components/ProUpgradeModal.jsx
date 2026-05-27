@@ -1,14 +1,64 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, CheckCircle, ArrowRight, ShieldCheck, Star } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 export default function ProUpgradeModal({ isOpen, onClose, username, onUpgradeSuccess }) {
   const [view, setView] = useState('pitch'); // 'pitch' or 'payment'
   const [paymentMade, setPaymentMade] = useState(false);
   const [txnId, setTxnId] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [receiptUrl, setReceiptUrl] = useState('');
+
+  const [settings, setSettings] = useState({
+    membership_price_nrs: '100',
+    admin_whatsapp: '9779844245717',
+    admin_payment_instructions: 'Send exactly Rs. 100 via QR and put your username in remarks.',
+    payment_qr_url: ''
+  });
+
+  useEffect(() => {
+    if (isOpen) {
+      // Fetch dynamic settings from admin configurations
+      fetch('/api/settings')
+        .then(res => res.json())
+        .then(data => {
+          if (data && !data.error) {
+            setSettings(prev => ({ ...prev, ...data }));
+          }
+        })
+        .catch(err => console.error('Error fetching app settings:', err));
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
+
+  const handleReceiptUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('username', username);
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setReceiptUrl(data.url);
+      } else {
+        alert(data.error || 'Failed to upload receipt screenshot');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Upload error occurred. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleRequestPremium = async () => {
     try {
@@ -16,7 +66,7 @@ export default function ProUpgradeModal({ isOpen, onClose, username, onUpgradeSu
       const res = await fetch(`/api/profile/${username}/request-pro`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ txnId })
+        body: JSON.stringify({ txnId, receiptImageUrl: receiptUrl })
       });
       if (res.ok) {
         alert('Pro request submitted! Admin will verify your payment shortly.');
@@ -42,7 +92,7 @@ export default function ProUpgradeModal({ isOpen, onClose, username, onUpgradeSu
           <div style={contentStyle}>
             <div style={iconBadgeStyle}><Star size={32} color="#f59e0b" fill="#f59e0b" /></div>
             <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', fontWeight: 700 }}>Upgrade to AuraLink Pro</h2>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>Rs. 100 / year for ultimate creator tools.</p>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>Rs. {settings.membership_price_nrs} / year for ultimate creator tools.</p>
             
             <div style={tableContainerStyle}>
               <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
@@ -65,12 +115,17 @@ export default function ProUpgradeModal({ isOpen, onClose, username, onUpgradeSu
                     <td style={{ padding: '0.5rem', textAlign: 'center' }}>Min 3 chars</td>
                   </tr>
                   <tr style={{ borderBottom: '1px solid var(--border-light)' }}>
-                    <td style={{ padding: '0.5rem' }}>Premium Themes</td>
+                    <td style={{ padding: '0.5rem' }}>Premium Themes & Custom CSS</td>
+                    <td style={{ padding: '0.5rem', textAlign: 'center' }}>-</td>
+                    <td style={{ padding: '0.5rem', textAlign: 'center' }}><CheckCircle size={16} color="#10b981" style={{ margin: '0 auto' }}/></td>
+                  </tr>
+                  <tr style={{ borderBottom: '1px solid var(--border-light)' }}>
+                    <td style={{ padding: '0.5rem' }}>Social Icons & Link Scheduling</td>
                     <td style={{ padding: '0.5rem', textAlign: 'center' }}>-</td>
                     <td style={{ padding: '0.5rem', textAlign: 'center' }}><CheckCircle size={16} color="#10b981" style={{ margin: '0 auto' }}/></td>
                   </tr>
                   <tr>
-                    <td style={{ padding: '0.5rem' }}>Pro Profile Badge</td>
+                    <td style={{ padding: '0.5rem' }}>Pro Ring & Watermark Toggle</td>
                     <td style={{ padding: '0.5rem', textAlign: 'center' }}>-</td>
                     <td style={{ padding: '0.5rem', textAlign: 'center' }}><CheckCircle size={16} color="#10b981" style={{ margin: '0 auto' }}/></td>
                   </tr>
@@ -80,7 +135,7 @@ export default function ProUpgradeModal({ isOpen, onClose, username, onUpgradeSu
 
             <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
               <button onClick={onClose} className="btn-secondary" style={{ padding: '0.5rem 1rem' }}>Cancel</button>
-              <Link to="/pro" onClick={onClose} className="btn-secondary" style={{ padding: '0.5rem 1rem', textDecoration: 'none' }}>Learn More</Link>
+              <a href="/pro" onClick={(e) => { e.preventDefault(); onClose(); window.history.pushState(null, '', '/pro'); window.dispatchEvent(new PopStateEvent('popstate')); }} className="btn-secondary" style={{ padding: '0.5rem 1rem', textDecoration: 'none' }}>Learn More</a>
               <button onClick={() => setView('payment')} className="btn-primary" style={{ padding: '0.5rem 1.5rem', background: '#f59e0b', color: '#000', border: 'none' }}>
                 Get Premium <ArrowRight size={16} style={{ marginLeft: '0.5rem', display: 'inline' }} />
               </button>
@@ -93,25 +148,48 @@ export default function ProUpgradeModal({ isOpen, onClose, username, onUpgradeSu
             <ShieldCheck size={32} color="#10b981" style={{ marginBottom: '1rem' }} />
             <h2 style={{ fontSize: '1.3rem', marginBottom: '0.5rem' }}>Secure Checkout</h2>
             <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.9rem' }}>
-              Send exactly Rs. 100 and write <strong>{username} auralink</strong> in the remarks.
+              {settings.admin_payment_instructions} Reference remarks: <strong>{username} auralink</strong>.
             </p>
 
-            {/* QR Code Placeholder */}
-            <div style={{ background: '#fff', padding: '1rem', borderRadius: '8px', display: 'inline-block', marginBottom: '1rem' }}>
-              <img src="https://placehold.co/200x200?text=QR+Code" alt="Payment QR Code" style={{ width: '150px', height: '150px' }} />
+            {/* QR Code */}
+            <div style={{ background: '#fff', padding: '1rem', borderRadius: '8px', display: 'inline-block', marginBottom: '1rem', border: '1px solid var(--border-light)' }}>
+              <img 
+                src={settings.payment_qr_url || "https://placehold.co/200x200?text=Scan+to+Pay"} 
+                alt="Payment QR Code" 
+                style={{ width: '150px', height: '150px', objectFit: 'contain' }} 
+              />
             </div>
 
             <a 
-              href={`https://wa.me/9779844245717?text=Payment%20proof%20for%20auralink%20upgrade.%20Username:%20${username}`}
+              href={`https://wa.me/${settings.admin_whatsapp}?text=Payment%20proof%20for%20auralink%20upgrade.%20Username:%20${username}`}
               target="_blank" 
               rel="noreferrer"
               className="btn-secondary"
-              style={{ display: 'block', width: '100%', marginBottom: '1.5rem', padding: '0.75rem', textDecoration: 'none' }}
+              style={{ display: 'block', width: '100%', marginBottom: '1rem', padding: '0.75rem', textDecoration: 'none' }}
             >
-              Send Proof via WhatsApp (+977 9844245717)
+              Send Proof via WhatsApp (+{settings.admin_whatsapp})
             </a>
 
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', cursor: 'pointer', textAlign: 'left', background: 'var(--bg-tertiary)', padding: '0.75rem', borderRadius: '6px' }}>
+            {/* Uploader */}
+            <div style={{ width: '100%', textAlign: 'left', marginBottom: '1.5rem', background: 'var(--bg-tertiary)', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.4rem', display: 'block', fontWeight: 600 }}>Upload Payment Screenshot (Optional)</label>
+              <input 
+                type="file" 
+                accept="image/*" 
+                onChange={handleReceiptUpload} 
+                disabled={uploading} 
+                style={{ width: '100%', fontSize: '0.8rem' }}
+              />
+              {uploading && <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>Uploading...</p>}
+              {receiptUrl && (
+                <div style={{ marginTop: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <img src={receiptUrl} alt="Receipt Preview" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border-light)' }} />
+                  <span style={{ fontSize: '0.75rem', color: 'var(--success)' }}>✓ Receipt uploaded</span>
+                </div>
+              )}
+            </div>
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', cursor: 'pointer', textAlign: 'left', background: 'var(--bg-tertiary)', padding: '0.75rem', borderRadius: '6px', width: '100%' }}>
               <input 
                 type="checkbox" 
                 checked={paymentMade} 
@@ -123,7 +201,7 @@ export default function ProUpgradeModal({ isOpen, onClose, username, onUpgradeSu
 
             {paymentMade && (
               <div style={{ textAlign: 'left', marginBottom: '1.5rem', width: '100%' }}>
-                <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.3rem', display: 'block' }}>Transaction Reference ID (Optional)</label>
+                <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.3rem', display: 'block' }}>Transaction Reference ID</label>
                 <input 
                   type="text" 
                   value={txnId}
@@ -139,7 +217,7 @@ export default function ProUpgradeModal({ isOpen, onClose, username, onUpgradeSu
               <button onClick={() => setView('pitch')} className="btn-secondary" style={{ flex: 1 }}>Back</button>
               <button 
                 onClick={handleRequestPremium} 
-                disabled={!paymentMade || submitting} 
+                disabled={!paymentMade || submitting || uploading} 
                 className="btn-primary" 
                 style={{ flex: 2, background: paymentMade ? '#10b981' : 'var(--bg-tertiary)', color: paymentMade ? '#000' : 'var(--text-muted)' }}
               >

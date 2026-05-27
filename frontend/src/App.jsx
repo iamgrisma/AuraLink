@@ -101,7 +101,7 @@ export default function App() {
       );
       
     case '/pro':
-      return <ProSalesPage />;
+      return <ProSalesPage onNavigate={navigateTo} />;
       
     case '/dashboard':
       if (!user) {

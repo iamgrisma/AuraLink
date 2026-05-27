@@ -1491,6 +1491,17 @@ input:checked + .slider:before {
   display: inline-block;
   padding: 4px;
   border-radius: 50%;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.pro-avatar-ring::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
   background: conic-gradient(
     #ff4545,
     #00ff99,
@@ -1499,6 +1510,8 @@ input:checked + .slider:before {
     #ff4545
   );
   animation: spinRing 4s linear infinite;
+  z-index: -1;
+  border-radius: 50%;
 }
 
 .pro-avatar-ring img,

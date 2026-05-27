@@ -10,7 +10,10 @@ CREATE TABLE IF NOT EXISTS users (
     account_status TEXT DEFAULT 'active',
     suspension_reason TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    last_username_change DATETIME
+    last_username_change DATETIME,
+    pro_since DATETIME,
+    pro_expires_at DATETIME,
+    pro_requested_at DATETIME
 );
 
 
@@ -32,6 +35,9 @@ CREATE TABLE IF NOT EXISTS profiles (
     seo_title TEXT,
     seo_description TEXT,
     allow_indexing INTEGER DEFAULT 1,
+    show_watermark INTEGER DEFAULT 1,
+    custom_css TEXT,
+    social_links_json TEXT,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
 );
@@ -55,6 +61,8 @@ CREATE TABLE IF NOT EXISTS links (
     link_type TEXT DEFAULT 'link',
     price REAL,
     currency TEXT DEFAULT 'USD',
+    start_date DATETIME,
+    end_date DATETIME,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -145,4 +153,36 @@ CREATE TABLE IF NOT EXISTS user_media (
 );
 
 CREATE INDEX IF NOT EXISTS idx_user_media_username ON user_media(username);
+
+-- App Settings Table
+CREATE TABLE IF NOT EXISTS app_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Seed Default Settings
+INSERT OR IGNORE INTO app_settings (key, value) VALUES
+('membership_price_nrs', '100'),
+('admin_whatsapp', '9779844245717'),
+('admin_payment_instructions', 'Send exactly Rs. 100 via QR and put your username in the remarks.'),
+('payment_qr_url', '');
+
+-- Payment Logs Table
+CREATE TABLE IF NOT EXISTS payment_logs (
+    id TEXT PRIMARY KEY,
+    username TEXT NOT NULL REFERENCES users(username) ON DELETE CASCADE,
+    amount REAL NOT NULL,
+    currency TEXT DEFAULT 'NPR',
+    transaction_id TEXT,
+    payment_method TEXT DEFAULT 'QR Code',
+    status TEXT DEFAULT 'pending', -- 'pending', 'approved', 'rejected'
+    receipt_image_url TEXT,
+    admin_notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_payment_logs_username ON payment_logs(username);
+CREATE INDEX IF NOT EXISTS idx_payment_logs_status ON payment_logs(status);
 

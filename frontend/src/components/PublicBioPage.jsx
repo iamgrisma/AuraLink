@@ -162,6 +162,39 @@ export default function PublicBioPage({ username }) {
   const isPastelTheme = profile.theme.backgroundValue.includes('pastel') || profile.theme.backgroundValue.includes('#fdf2f8');
   const globalFontColor = profile.theme.fontColor || (isPastelTheme ? '#4c0519' : '#ffffff');
 
+  const getPlatformUrl = (platform, handle) => {
+    if (!handle) return '';
+    const cleanHandle = handle.trim();
+    if (cleanHandle.startsWith('http://') || cleanHandle.startsWith('https://')) {
+      return cleanHandle;
+    }
+    switch (platform) {
+      case 'instagram': return `https://instagram.com/${cleanHandle}`;
+      case 'youtube': return cleanHandle.startsWith('@') ? `https://youtube.com/${cleanHandle}` : `https://youtube.com/@${cleanHandle}`;
+      case 'twitter': return `https://x.com/${cleanHandle}`;
+      case 'tiktok': return cleanHandle.startsWith('@') ? `https://tiktok.com/${cleanHandle}` : `https://tiktok.com/@${cleanHandle}`;
+      case 'facebook': return `https://facebook.com/${cleanHandle}`;
+      case 'github': return `https://github.com/${cleanHandle}`;
+      case 'linkedin': return `https://linkedin.com/in/${cleanHandle}`;
+      default: return cleanHandle;
+    }
+  };
+
+  const getPlatformIcon = (platform) => {
+    switch (platform) {
+      case 'instagram': return FaInstagram;
+      case 'youtube': return FaYoutube;
+      case 'twitter': return FaTwitter;
+      case 'tiktok': return FaTiktok;
+      case 'facebook': return FaFacebook;
+      case 'github': return FaGithub;
+      case 'linkedin': return FaLinkedin;
+      default: return null;
+    }
+  };
+
+  const showWatermark = profile.proStatus !== 'approved' || profile.showWatermark !== false;
+
   return (
     <>
       <Helmet>
@@ -169,6 +202,10 @@ export default function PublicBioPage({ username }) {
         <meta name="description" content={profile.seo?.description || profile.bio} />
         {profile.seo?.allowIndexing === false && <meta name="robots" content="noindex, nofollow" />}
       </Helmet>
+
+      {profile.proStatus === 'approved' && profile.customCss && (
+        <style id="custom-css-block">{profile.customCss}</style>
+      )}
 
       <div 
         className="public-profile-wrapper"
@@ -197,9 +234,73 @@ export default function PublicBioPage({ username }) {
             {profile.bio}
           </p>
 
+          {/* Social Links Row */}
+          {profile.socialLinksJson && (() => {
+            try {
+              const socialLinks = JSON.parse(profile.socialLinksJson);
+              const activePlatforms = Object.entries(socialLinks).filter(([_, value]) => value && value.trim() !== '');
+              if (activePlatforms.length === 0) return null;
+              
+              return (
+                <div className="bio-social-bar" style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+                  {activePlatforms.map(([platform, handle]) => {
+                    const Icon = getPlatformIcon(platform);
+                    if (!Icon) return null;
+                    const url = getPlatformUrl(platform, handle);
+                    return (
+                      <a 
+                        key={platform} 
+                        href={url} 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        className="bio-social-icon"
+                        title={platform}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '50%',
+                          background: 'rgba(255, 255, 255, 0.1)',
+                          backdropFilter: 'blur(4px)',
+                          border: '1px solid rgba(255, 255, 255, 0.15)',
+                          color: globalFontColor,
+                          transition: 'transform 0.2s, background-color 0.2s',
+                          fontSize: '1.2rem'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'scale(1.1)';
+                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'scale(1)';
+                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                        }}
+                      >
+                        <Icon />
+                      </a>
+                    );
+                  })}
+                </div>
+              );
+            } catch (e) {
+              console.error('Error parsing social links json:', e);
+              return null;
+            }
+          })()}
+
           {/* Links list */}
           <div className="bio-links-container">
-            {profile.links.filter(l => l.active).map((link) => {
+            {profile.links.filter(l => {
+              if (!l.active) return false;
+              if (profile.proStatus === 'approved') {
+                const now = new Date();
+                if (l.startDate && now < new Date(l.startDate)) return false;
+                if (l.endDate && now > new Date(l.endDate)) return false;
+              }
+              return true;
+            }).map((link) => {
               const finalStyleName = link.buttonStyle || profile.theme.buttonStyle || 'solid';
               const buttonClass = `bio-link-button theme-${finalStyleName}-btn`;
               const computedStyles = {};
@@ -259,10 +360,11 @@ export default function PublicBioPage({ username }) {
           </div>
 
           {/* Brand stamp & Report link */}
-          <div className="branding-tag" style={{ color: 'rgba(255,255,255,0.4)', marginTop: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.8rem' }}>
-            {!isPastelTheme && (
+          <div className="branding-tag" style={{ color: globalFontColor, opacity: 0.6, marginTop: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.8rem' }}>
+            {showWatermark && (
               <div>
-                <Link2 size={12} /> Powered by <a href="/" style={{ color: '#fff', textDecoration: 'underline', fontWeight: '600' }}>AuraLink</a>
+                <Link2 size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> 
+                Powered by <a href="/" style={{ color: globalFontColor, textDecoration: 'underline', fontWeight: '600' }}>AuraLink</a>
               </div>
             )}
             <button 

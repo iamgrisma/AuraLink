@@ -24,6 +24,23 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
   // Admin states
   const [adminUsers, setAdminUsers] = useState([]);
   const [adminReports, setAdminReports] = useState([]);
+  const [adminSettings, setAdminSettings] = useState({
+    membership_price_nrs: '100',
+    admin_whatsapp: '9779844245717',
+    admin_payment_instructions: 'Send exactly Rs. 100 via QR and put your username in remarks.',
+    payment_qr_url: ''
+  });
+  const [adminPayments, setAdminPayments] = useState([]);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [activeApproval, setActiveApproval] = useState(null); // { username, logId, action: 'grant_pro' | 'revoke_pro' }
+  const [approvalStartDate, setApprovalStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [approvalEndDate, setApprovalEndDate] = useState(() => {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() + 1);
+    return d.toISOString().split('T')[0];
+  });
+  const [approvalNotes, setApprovalNotes] = useState('');
+  const [enlargedReceiptUrl, setEnlargedReceiptUrl] = useState(null);
   
   // Link form states
   const [newTitle, setNewTitle] = useState('');
@@ -136,6 +153,9 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
       if (profRes.ok) {
         const profData = await profRes.json();
         setProfile(profData);
+        if (profData.proStatus) {
+          setProStatus(profData.proStatus);
+        }
       }
       
       if (analRes.ok) {
@@ -145,19 +165,16 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
       
       // Admin data fetch
       if (isAdmin) {
-        const [usersRes, reportsRes] = await Promise.all([
+        const [usersRes, reportsRes, settingsRes, paymentsRes] = await Promise.all([
           fetch(`${API_BASE}/admin/users`),
-          fetch(`${API_BASE}/admin/reports`)
+          fetch(`${API_BASE}/admin/reports`),
+          fetch(`${API_BASE}/settings`),
+          fetch(`${API_BASE}/admin/payments`)
         ]);
         if (usersRes.ok) setAdminUsers(await usersRes.json());
         if (reportsRes.ok) setAdminReports(await reportsRes.json());
-      }
-      
-      // Get user premium info from localStorage (simulated session)
-      const cachedUser = localStorage.getItem('auralink_user');
-      if (cachedUser) {
-        const userObj = JSON.parse(cachedUser);
-        setProStatus(userObj.proStatus || 'none');
+        if (settingsRes.ok) setAdminSettings(await settingsRes.json());
+        if (paymentsRes.ok) setAdminPayments(await paymentsRes.json());
       }
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
@@ -242,6 +259,106 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
       }
     } catch (err) {
       console.error('Error resolving report:', err);
+    }
+  };
+
+  const getSocialLink = (platform) => {
+    if (!profile) return '';
+    try {
+      const json = profile.socialLinksJson ? JSON.parse(profile.socialLinksJson) : {};
+      return json[platform] || '';
+    } catch (e) {
+      return '';
+    }
+  };
+
+  const setSocialLink = (platform, value) => {
+    if (!profile) return;
+    try {
+      const json = profile.socialLinksJson ? JSON.parse(profile.socialLinksJson) : {};
+      json[platform] = value;
+      const updatedProfile = { ...profile, socialLinksJson: JSON.stringify(json) };
+      setProfile(updatedProfile);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    try {
+      setSavingSettings(true);
+      const res = await fetch(`${API_BASE}/admin/settings`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(adminSettings)
+      });
+      if (res.ok) {
+        alert('Global configurations saved successfully!');
+      } else {
+        alert('Failed to save settings.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error saving settings.');
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
+  const handleAdminQRUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('username', 'admin');
+      const res = await fetch(`${API_BASE}/upload`, {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setAdminSettings(prev => ({ ...prev, payment_qr_url: data.url }));
+        alert('QR code uploaded successfully! Click "Save Configuration Settings" to apply it.');
+      } else {
+        alert(data.error || 'Failed to upload QR code');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('QR upload error occurred.');
+    }
+  };
+
+  const submitApproval = async () => {
+    if (!activeApproval) return;
+    try {
+      const res = await fetch(`${API_BASE}/admin/approve-pro/${activeApproval.username}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: activeApproval.action === 'revoke_pro' ? 'none' : 'approved',
+          pro_since: activeApproval.action === 'revoke_pro' ? null : new Date(approvalStartDate).toISOString(),
+          pro_expires_at: activeApproval.action === 'revoke_pro' ? null : new Date(approvalEndDate).toISOString(),
+          logId: activeApproval.logId || null,
+          adminNotes: approvalNotes
+        })
+      });
+      if (res.ok) {
+        alert(`Successfully updated membership status for @${activeApproval.username}`);
+        const [uRes, pRes] = await Promise.all([
+          fetch(`${API_BASE}/admin/users`),
+          fetch(`${API_BASE}/admin/payments`)
+        ]);
+        if (uRes.ok) setAdminUsers(await uRes.json());
+        if (pRes.ok) setAdminPayments(await pRes.json());
+        setActiveApproval(null);
+        setApprovalNotes('');
+      } else {
+        alert('Failed to update membership.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('An error occurred.');
     }
   };
 
@@ -733,7 +850,27 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
                         style={{ resize: 'none' }}
                       />
                     </div>
-
+ 
+                    <div className="form-group" style={{ marginBottom: '1.5rem', borderTop: '1px solid var(--border-light)', paddingTop: '1.5rem' }}>
+                      <label style={{ fontWeight: '600', display: 'block', marginBottom: '0.75rem' }}>🔗 Social Profile Handles (Displays as quick icons)</label>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.75rem' }}>
+                        {['instagram', 'youtube', 'twitter', 'tiktok', 'facebook', 'github', 'linkedin'].map(platform => (
+                          <div key={platform} style={{ display: 'flex', flexDirection: 'column' }}>
+                            <label style={{ fontSize: '0.75rem', textTransform: 'capitalize', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>{platform}</label>
+                            <input 
+                              type="text" 
+                              value={getSocialLink(platform)}
+                              onChange={(e) => setSocialLink(platform, e.target.value)}
+                              onBlur={() => handleSave()}
+                              className="input-control" 
+                              style={{ fontSize: '0.8rem', padding: '0.4rem' }}
+                              placeholder={`${platform} username`}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+ 
                     <div className="form-group" style={{ marginBottom: '1.5rem' }}>
                       <label style={{ fontWeight: '600' }}>SEO Settings</label>
                       <input 
@@ -945,22 +1082,50 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
                                   </label>
                                   
                                   {proStatus === "approved" && (
-                                    <div style={{ marginBottom: '1rem', padding: '0.5rem', border: '1px solid var(--accent-secondary)', borderRadius: '4px' }}>
-                                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                                        <input type="checkbox" checked={link.linkType === 'product'} onChange={(e) => handleUpdateLinkStyle(link.id, 'linkType', e.target.checked ? 'product' : 'link')} />
-                                        🛒 Sell as Product
-                                      </label>
-                                      {link.linkType === 'product' && (
-                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                          <input type="number" value={link.price || 0} onChange={(e) => handleUpdateLinkStyle(link.id, 'price', parseFloat(e.target.value))} onBlur={() => handleSave()} className="input-control" placeholder="Price" />
-                                          <select value={link.currency || 'USD'} onChange={(e) => handleUpdateLinkStyle(link.id, 'currency', e.target.value)} className="input-control">
-                                            <option value="USD">USD</option>
-                                            <option value="EUR">EUR</option>
-                                            <option value="GBP">GBP</option>
-                                          </select>
+                                    <>
+                                      <div style={{ marginBottom: '1rem', padding: '0.5rem', border: '1px solid var(--accent-secondary)', borderRadius: '4px' }}>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                          <input type="checkbox" checked={link.linkType === 'product'} onChange={(e) => handleUpdateLinkStyle(link.id, 'linkType', e.target.checked ? 'product' : 'link')} />
+                                          🛒 Sell as Product
+                                        </label>
+                                        {link.linkType === 'product' && (
+                                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <input type="number" value={link.price || 0} onChange={(e) => handleUpdateLinkStyle(link.id, 'price', parseFloat(e.target.value))} onBlur={() => handleSave()} className="input-control" placeholder="Price" />
+                                            <select value={link.currency || 'USD'} onChange={(e) => handleUpdateLinkStyle(link.id, 'currency', e.target.value)} className="input-control">
+                                              <option value="USD">USD</option>
+                                              <option value="EUR">EUR</option>
+                                              <option value="GBP">GBP</option>
+                                            </select>
+                                          </div>
+                                        )}
+                                      </div>
+
+                                      <div style={{ marginBottom: '1rem', padding: '0.5rem', border: '1px solid var(--border-light)', borderRadius: '6px', background: 'rgba(245, 158, 11, 0.05)' }}>
+                                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#f59e0b', display: 'block', marginBottom: '0.5rem' }}>⏰ Link Scheduling (Pro Feature)</span>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                                          <div>
+                                            <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Show From</label>
+                                            <input 
+                                              type="datetime-local" 
+                                              value={link.startDate || ''} 
+                                              onChange={(e) => handleUpdateLinkStyle(link.id, 'startDate', e.target.value)} 
+                                              className="input-control" 
+                                              style={{ fontSize: '0.75rem', padding: '0.3rem' }} 
+                                            />
+                                          </div>
+                                          <div>
+                                            <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Hide From</label>
+                                            <input 
+                                              type="datetime-local" 
+                                              value={link.endDate || ''} 
+                                              onChange={(e) => handleUpdateLinkStyle(link.id, 'endDate', e.target.value)} 
+                                              className="input-control" 
+                                              style={{ fontSize: '0.75rem', padding: '0.3rem' }} 
+                                            />
+                                          </div>
                                         </div>
-                                      )}
-                                    </div>
+                                      </div>
+                                    </>
                                   )}
                                   
                                   <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
@@ -1235,6 +1400,42 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
                       </div>
                     </div>
                   </section>
+
+                  {proStatus === "approved" && (
+                    <section className="editor-card" style={{ marginTop: '1.5rem' }}>
+                      <h2 className="card-title" style={{ color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <Sparkles size={18} /> Premium Branding & Styles
+                      </h2>
+                      
+                      <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={profile.showWatermark !== false}
+                            onChange={(e) => {
+                              const updated = { ...profile, showWatermark: e.target.checked };
+                              setProfile(updated);
+                              handleSave(updated);
+                            }}
+                          />
+                          Show "Made with AuraLink" watermark on my profile
+                        </label>
+                      </div>
+
+                      <div className="form-group">
+                        <label>Custom CSS Overrides</label>
+                        <textarea 
+                          value={profile.customCss || ''} 
+                          onChange={(e) => setProfile({ ...profile, customCss: e.target.value })}
+                          onBlur={() => handleSave()}
+                          className="input-control" 
+                          placeholder="e.g. .bio-name { font-weight: 900; letter-spacing: -1px; text-transform: uppercase; }"
+                          rows={4}
+                          style={{ fontFamily: 'monospace', fontSize: '0.8rem', resize: 'vertical' }}
+                        />
+                      </div>
+                    </section>
+                  )}
                 </>
               )}
 
@@ -1374,6 +1575,196 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
 
               {isAdmin && activeTab === 'admin' && (
                 <>
+                  {/* Approval Custom Dates Modal Overlay */}
+                  {activeApproval && (
+                    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.75)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+                      <div style={{ background: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-light)', padding: '1.5rem', width: '100%', maxWidth: '400px', textAlign: 'left' }}>
+                        <h3 style={{ marginBottom: '1.2rem', fontSize: '1.15rem', fontWeight: 700 }}>
+                          {activeApproval.action === 'revoke_pro' ? 'Revoke PRO Membership' : 'Grant PRO Membership'} - @{activeApproval.username}
+                        </h3>
+                        
+                        {activeApproval.action !== 'revoke_pro' && (
+                          <>
+                            <div className="form-group" style={{ marginBottom: '1rem' }}>
+                              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Membership Starts</label>
+                              <input 
+                                type="date" 
+                                value={approvalStartDate} 
+                                onChange={(e) => setApprovalStartDate(e.target.value)} 
+                                className="input-control" 
+                              />
+                            </div>
+                            <div className="form-group" style={{ marginBottom: '1rem' }}>
+                              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Membership Expires (End Date)</label>
+                              <input 
+                                type="date" 
+                                value={approvalEndDate} 
+                                onChange={(e) => setApprovalEndDate(e.target.value)} 
+                                className="input-control" 
+                              />
+                            </div>
+                          </>
+                        )}
+
+                        <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                          <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Admin Action Remarks</label>
+                          <textarea 
+                            value={approvalNotes} 
+                            onChange={(e) => setApprovalNotes(e.target.value)} 
+                            placeholder="Provide any details about payment verification or revoking logic..." 
+                            className="input-control" 
+                            rows={3} 
+                            style={{ resize: 'none' }}
+                          />
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                          <button onClick={() => { setActiveApproval(null); setApprovalNotes(''); }} className="btn-secondary" style={{ padding: '0.4rem 1rem', fontSize: '0.85rem' }}>Cancel</button>
+                          <button onClick={submitApproval} className="btn-primary" style={{ padding: '0.4rem 1.5rem', background: activeApproval.action === 'revoke_pro' ? 'var(--danger)' : 'var(--success)', border: 'none', color: '#000', fontSize: '0.85rem' }}>
+                            {activeApproval.action === 'revoke_pro' ? 'Revoke PRO' : 'Grant PRO'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Enlarged Receipt Overlay */}
+                  {enlargedReceiptUrl && (
+                    <div onClick={() => setEnlargedReceiptUrl(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 10001, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', cursor: 'zoom-out' }}>
+                      <img src={enlargedReceiptUrl} alt="Receipt Screenshot" style={{ maxWidth: '90%', maxHeight: '90%', objectFit: 'contain', borderRadius: '8px', border: '2px solid #fff' }} />
+                    </div>
+                  )}
+
+                  {/* 1. Global Platform Settings */}
+                  <section className="editor-card" style={{ marginBottom: '2rem' }}>
+                    <h2 className="card-title"><Settings size={18} /> Global Configurations</h2>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem', textAlign: 'left' }}>
+                      <div className="form-group">
+                        <label>Membership Price (NPR)</label>
+                        <input 
+                          type="number" 
+                          value={adminSettings.membership_price_nrs || ''} 
+                          onChange={(e) => setAdminSettings({ ...adminSettings, membership_price_nrs: e.target.value })} 
+                          className="input-control" 
+                          placeholder="e.g. 100"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Support WhatsApp Number (e.g. 9779844245717)</label>
+                        <input 
+                          type="text" 
+                          value={adminSettings.admin_whatsapp || ''} 
+                          onChange={(e) => setAdminSettings({ ...adminSettings, admin_whatsapp: e.target.value })} 
+                          className="input-control" 
+                          placeholder="e.g. 9779844245717"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Payment Instructions</label>
+                        <textarea 
+                          value={adminSettings.admin_payment_instructions || ''} 
+                          onChange={(e) => setAdminSettings({ ...adminSettings, admin_payment_instructions: e.target.value })} 
+                          className="input-control" 
+                          rows={2}
+                          placeholder="Provide steps for checkout payment remarks..."
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Payment QR Code Upload (Cloudflare R2)</label>
+                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginTop: '0.4rem' }}>
+                          {adminSettings.payment_qr_url ? (
+                            <img src={adminSettings.payment_qr_url} alt="QR Code Preview" style={{ width: '60px', height: '60px', objectFit: 'contain', border: '1px solid var(--border-light)', borderRadius: '4px', background: '#fff' }} />
+                          ) : (
+                            <div style={{ width: '60px', height: '60px', border: '1px dashed var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: 'var(--text-muted)', borderRadius: '4px' }}>No QR</div>
+                          )}
+                          <input type="file" accept="image/*" onChange={handleAdminQRUpload} style={{ fontSize: '0.8rem' }} />
+                        </div>
+                      </div>
+                      <button onClick={handleSaveSettings} disabled={savingSettings} className="btn-primary" style={{ width: 'fit-content', marginTop: '0.5rem' }}>
+                        {savingSettings ? 'Saving Settings...' : 'Save Configuration Settings'}
+                      </button>
+                    </div>
+                  </section>
+
+                  {/* 2. Transaction Auditing Ledger */}
+                  <section className="editor-card" style={{ marginBottom: '2rem' }}>
+                    <h2 className="card-title"><BarChart3 size={18} /> Transaction Auditing Ledger</h2>
+                    <div className="table-card" style={{ marginTop: '1rem' }}>
+                      <table className="perf-table">
+                        <thead>
+                          <tr>
+                            <th>User</th>
+                            <th>Amount</th>
+                            <th>Txn ID</th>
+                            <th>Receipt</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {adminPayments.map(p => (
+                            <tr key={p.id}>
+                              <td style={{ fontWeight: '500' }}>@{p.username}</td>
+                              <td>Rs. {p.amount}</td>
+                              <td><code>{p.transaction_id || 'N/A'}</code></td>
+                              <td>
+                                {p.receipt_image_url ? (
+                                  <img 
+                                    src={p.receipt_image_url} 
+                                    alt="Receipt" 
+                                    onClick={() => setEnlargedReceiptUrl(p.receipt_image_url)}
+                                    style={{ width: '32px', height: '32px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border-light)', cursor: 'zoom-in' }} 
+                                  />
+                                ) : (
+                                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>None</span>
+                                )}
+                              </td>
+                              <td style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{new Date(p.created_at).toLocaleDateString()}</td>
+                              <td>
+                                {p.status === 'approved' ? (
+                                  <span style={{ color: 'var(--success)', fontWeight: '500' }}>Approved</span>
+                                ) : p.status === 'rejected' ? (
+                                  <span style={{ color: 'var(--danger)', fontWeight: '500' }}>Rejected</span>
+                                ) : (
+                                  <span style={{ color: 'var(--warning)', fontWeight: '500' }}>Pending</span>
+                                )}
+                              </td>
+                              <td>
+                                {p.status === 'pending' && (
+                                  <div style={{ display: 'flex', gap: '0.3rem' }}>
+                                    <button 
+                                      onClick={() => {
+                                        setActiveApproval({ username: p.username, logId: p.id, action: 'grant_pro' });
+                                        setApprovalNotes(`Approved from Checkout Txn ID: ${p.transaction_id || 'Manual Verify'}`);
+                                      }} 
+                                      className="btn-primary" 
+                                      style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem', background: 'var(--success)', border: 'none', color: '#000' }}
+                                    >
+                                      Verify
+                                    </button>
+                                    <button 
+                                      onClick={() => {
+                                        setActiveApproval({ username: p.username, logId: p.id, action: 'revoke_pro' });
+                                        setApprovalNotes(`Failed payment verification.`);
+                                      }} 
+                                      className="btn-secondary" 
+                                      style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem', color: 'var(--danger)' }}
+                                    >
+                                      Reject
+                                    </button>
+                                  </div>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                          {adminPayments.length === 0 && <tr><td colSpan="7" style={{ textAlign: 'center' }}>No payment upgrade logs found</td></tr>}
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+
+                  {/* 3. User Management */}
                   <section className="editor-card" style={{ marginBottom: '2rem' }}>
                     <h2 className="card-title"><Shield size={18} /> User Management</h2>
                     <div className="table-card" style={{ marginTop: '1rem' }}>
@@ -1382,7 +1773,7 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
                           <tr>
                             <th>Username</th>
                             <th>Role</th>
-                            <th>Pro Status</th>
+                            <th>Pro Status / Expiry</th>
                             <th>Account Status</th>
                             <th>Actions</th>
                           </tr>
@@ -1394,9 +1785,12 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
                               <td>{u.role.toUpperCase()}</td>
                               <td>
                                 {u.pro_status === 'approved' ? (
-                                  <span style={{ color: 'var(--success)', fontWeight: '500' }}>Active PRO</span>
+                                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <span style={{ color: 'var(--success)', fontWeight: '500' }}>Active PRO</span>
+                                    {u.pro_expires_at && <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Expires: {new Date(u.pro_expires_at).toLocaleDateString()}</span>}
+                                  </div>
                                 ) : u.pro_status === 'pending' ? (
-                                  <span style={{ color: 'var(--warning)', fontWeight: '500' }}>Pending</span>
+                                  <span style={{ color: 'var(--warning)', fontWeight: '500' }}>Pending Verification</span>
                                 ) : (
                                   <span style={{ color: 'var(--text-muted)' }}>Free</span>
                                 )}
@@ -1406,11 +1800,10 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
                               </td>
                               <td>
                                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                  {u.pro_status === 'pending' && (
-                                    <button onClick={() => handleAdminAction('grant_pro', u.username)} className="btn-primary" style={{ fontSize: '0.7rem', padding: '0.3rem 0.6rem' }}>Grant PRO</button>
-                                  )}
-                                  {u.pro_status === 'approved' && (
-                                    <button onClick={() => handleAdminAction('revoke_pro', u.username)} className="btn-secondary" style={{ fontSize: '0.7rem', padding: '0.3rem 0.6rem' }}>Revoke PRO</button>
+                                  {u.pro_status !== 'approved' ? (
+                                    <button onClick={() => { setActiveApproval({ username: u.username, logId: null, action: 'grant_pro' }); setApprovalNotes('Granted by administrator.'); }} className="btn-primary" style={{ fontSize: '0.7rem', padding: '0.3rem 0.6rem' }}>Grant PRO</button>
+                                  ) : (
+                                    <button onClick={() => { setActiveApproval({ username: u.username, logId: null, action: 'revoke_pro' }); setApprovalNotes('Revoked by administrator.'); }} className="btn-secondary" style={{ fontSize: '0.7rem', padding: '0.3rem 0.6rem' }}>Revoke PRO</button>
                                   )}
                                   <button onClick={() => handleAdminAction(u.account_status === 'suspended' ? 'unsuspend' : 'suspend', u.username)} className="btn-secondary" style={{ fontSize: '0.7rem', padding: '0.3rem 0.6rem', color: u.account_status === 'suspended' ? 'var(--success)' : 'var(--warning)' }}>
                                     {u.account_status === 'suspended' ? 'Unsuspend' : 'Suspend'}
@@ -1425,6 +1818,7 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
                     </div>
                   </section>
                   
+                  {/* 4. Reported Profiles */}
                   <section className="editor-card">
                     <h2 className="card-title" style={{ color: 'var(--danger)' }}><Trash2 size={18} /> Reported Profiles</h2>
                     <div className="table-card" style={{ marginTop: '1rem' }}>
@@ -1492,21 +1886,90 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
                   }}
                 >
                   
-                  {profile.avatarUrl ? (
-                    <img src={profile.avatarUrl} alt="Avatar" className="bio-avatar" />
-                  ) : (
-                    <div className="bio-avatar-placeholder">
-                      <User size={30} style={{ color: 'var(--text-muted)' }} />
-                    </div>
+                  {profile.proStatus === 'approved' && profile.customCss && (
+                    <style id="custom-css-simulator">{profile.customCss}</style>
                   )}
 
-                  <h2 className="bio-name">{profile.name || `@${username}`}</h2>
+                  {/* Avatar */}
+                  <div className={`bio-avatar-wrapper ${profile.proStatus === 'approved' ? 'pro-avatar-ring' : ''}`}>
+                    {profile.avatarUrl ? (
+                      <img src={profile.avatarUrl} alt="Avatar" className="bio-avatar" style={{ margin: 0 }} />
+                    ) : (
+                      <div className="bio-avatar-placeholder" style={{ margin: 0 }}>
+                        <User size={30} style={{ color: 'var(--text-muted)' }} />
+                      </div>
+                    )}
+                  </div>
+
+                  <h2 className="bio-name" style={{ marginTop: '1rem' }}>{profile.name || `@${username}`}</h2>
                   <p className="bio-description" style={{ color: profile.theme.backgroundValue.includes('#fdf2f8') ? 'rgba(76,5,25,0.7)' : 'rgba(255,255,255,0.7)' }}>
                     {profile.bio || 'Enter details on the left to customize...'}
                   </p>
 
+                  {/* Social Links Row */}
+                  {profile.socialLinksJson && (() => {
+                    try {
+                      const socialLinks = JSON.parse(profile.socialLinksJson);
+                      const activePlatforms = Object.entries(socialLinks).filter(([_, value]) => value && value.trim() !== '');
+                      if (activePlatforms.length === 0) return null;
+                      
+                      const getPlatformIcon = (platform) => {
+                        switch (platform) {
+                          case 'instagram': return FaInstagram;
+                          case 'youtube': return FaYoutube;
+                          case 'twitter': return FaTwitter;
+                          case 'tiktok': return FaTiktok;
+                          case 'facebook': return FaFacebook;
+                          case 'github': return FaGithub;
+                          case 'linkedin': return FaLinkedin;
+                          default: return null;
+                        }
+                      };
+
+                      return (
+                        <div className="bio-social-bar" style={{ display: 'flex', justifyContent: 'center', gap: '0.8rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                          {activePlatforms.map(([platform, handle]) => {
+                            const Icon = getPlatformIcon(platform);
+                            if (!Icon) return null;
+                            return (
+                              <div 
+                                key={platform} 
+                                className="bio-social-icon"
+                                title={platform}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  width: '32px',
+                                  height: '32px',
+                                  borderRadius: '50%',
+                                  background: 'rgba(255, 255, 255, 0.1)',
+                                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                                  color: profile.theme.backgroundValue.includes('#fdf2f8') ? '#4c0519' : '#ffffff',
+                                  fontSize: '1rem'
+                                }}
+                              >
+                                <Icon />
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    } catch (e) {
+                      return null;
+                    }
+                  })()}
+
                   <div className="bio-links-container">
-                    {profile.links.filter(l => l.active).map((link) => {
+                    {profile.links.filter(l => {
+                      if (!l.active) return false;
+                      if (proStatus === 'approved') {
+                        const now = new Date();
+                        if (l.startDate && now < new Date(l.startDate)) return false;
+                        if (l.endDate && now > new Date(l.endDate)) return false;
+                      }
+                      return true;
+                    }).map((link) => {
                       const finalStyleName = link.buttonStyle || profile.theme.buttonStyle || 'solid';
                       const buttonClass = `bio-link-button theme-${finalStyleName}-btn`;
                       const computedStyles = {};
@@ -1564,9 +2027,9 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
                     })}
                   </div>
 
-                  {!profile.theme.backgroundValue.includes('pastel') && (
+                  {(proStatus !== 'approved' || profile.showWatermark !== false) && (
                     <div className="branding-tag" style={{ color: profile.theme.backgroundValue.includes('#fdf2f8') ? 'rgba(76,5,25,0.4)' : 'rgba(255,255,255,0.4)' }}>
-                      <Link2 size={12} /> Powered by <span>AuraLink</span>
+                      <Link2 size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> Powered by <span>AuraLink</span>
                     </div>
                   )}
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { 
   Link2, BarChart3, Palette, User, Save, 
-  LogOut, RefreshCw, Eye, Sparkles, Shield,
+  LogOut, RefreshCw, Eye, Sparkles, Shield, Copy, ExternalLink,
   Menu, X
 } from 'lucide-react';
 import MediaManager from '../MediaManager';
@@ -54,6 +54,7 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
   // Mobile UI States
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showMobilePreview, setShowMobilePreview] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState(false);
 
   // Username change states
   const [tempUsername, setTempUsername] = useState(username);
@@ -425,6 +426,59 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
     setProfile({ ...profile, links: updatedLinks });
   };
 
+  const handleMoveLink = (id, direction) => {
+    const currentIndex = profile.links.findIndex(l => l.id === id);
+    const nextIndex = currentIndex + direction;
+    if (currentIndex < 0 || nextIndex < 0 || nextIndex >= profile.links.length) return;
+
+    const updatedLinks = [...profile.links];
+    [updatedLinks[currentIndex], updatedLinks[nextIndex]] = [updatedLinks[nextIndex], updatedLinks[currentIndex]];
+    const updatedProfile = { ...profile, links: updatedLinks };
+    setProfile(updatedProfile);
+    handleSave(updatedProfile);
+  };
+
+  const handleDuplicateLink = (id) => {
+    const source = profile.links.find(l => l.id === id);
+    if (!source) return;
+
+    const duplicate = {
+      ...source,
+      id: `link-${Date.now()}`,
+      title: `${source.title} Copy`,
+      active: false
+    };
+    const updatedProfile = { ...profile, links: [...profile.links, duplicate] };
+    setProfile(updatedProfile);
+    handleSave(updatedProfile);
+  };
+
+  const handleAddTemplateLink = (template) => {
+    const newLinkItem = {
+      id: `link-${Date.now()}`,
+      title: template.title,
+      url: template.url,
+      active: true,
+      iconName: template.iconName || '',
+      showUrl: true,
+      buttonStyle: template.buttonStyle || ''
+    };
+    const updatedProfile = { ...profile, links: [...profile.links, newLinkItem] };
+    setProfile(updatedProfile);
+    handleSave(updatedProfile);
+  };
+
+  const handleCopyPublicUrl = async () => {
+    const publicUrl = `${window.location.origin}/@${username}`;
+    try {
+      await navigator.clipboard.writeText(publicUrl);
+      setCopiedUrl(true);
+      setTimeout(() => setCopiedUrl(false), 1800);
+    } catch {
+      window.prompt('Copy your public page URL', publicUrl);
+    }
+  };
+
   // Theme updates
   const handleUpdateTheme = (key, value) => {
     const updatedProfile = {
@@ -474,6 +528,25 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
       </div>
     );
   }
+
+  const publicUrl = `${window.location.origin}/@${username}`;
+  const socialLinks = (() => {
+    try {
+      return JSON.parse(profile.socialLinksJson || '{}');
+    } catch {
+      return {};
+    }
+  })();
+  const activeLinks = profile.links.filter(link => link.active).length;
+  const setupItems = [
+    Boolean(profile.avatarUrl),
+    Boolean(profile.name && profile.name.trim().length > 1),
+    Boolean(profile.bio && profile.bio.trim().length > 20),
+    activeLinks >= 3,
+    Boolean(profile.seo?.title && profile.seo?.description),
+    Boolean(Object.values(socialLinks).some(Boolean))
+  ];
+  const setupScore = Math.round((setupItems.filter(Boolean).length / setupItems.length) * 100);
 
   return (
     <div className="app-container">
@@ -578,10 +651,25 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
             {/* Left: Editor form */}
             <div className="editor-pane">
               
-              {/* Header Info */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="dashboard-command-center">
                 <div>
-                  <h1 style={{ fontSize: '1.75rem' }}>Creator Dashboard</h1>
+                  <p className="eyebrow-label">Creator Workspace</p>
+                  <h1>Build a profile that earns trust</h1>
+                  <div className="public-url-pill">
+                    <span>{publicUrl}</span>
+                    <button type="button" onClick={handleCopyPublicUrl} title="Copy public URL">
+                      <Copy size={14} />
+                    </button>
+                    <a href={`/@${username}`} target="_blank" rel="noreferrer" title="Open public page">
+                      <ExternalLink size={14} />
+                    </a>
+                  </div>
+                </div>
+                <div className="launch-score">
+                  <span>{setupScore}%</span>
+                  <small>Launch readiness</small>
+                  <div className="score-bar"><div style={{ width: `${setupScore}%` }} /></div>
+                  {copiedUrl && <em>Copied</em>}
                 </div>
               </div>
 
@@ -609,6 +697,9 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
                   handleToggleLink={handleToggleLink}
                   handleDeleteLink={handleDeleteLink}
                   handleEditLinkText={handleEditLinkText}
+                  handleMoveLink={handleMoveLink}
+                  handleDuplicateLink={handleDuplicateLink}
+                  handleAddTemplateLink={handleAddTemplateLink}
                   expandedLinkId={expandedLinkId}
                   setExpandedLinkId={setExpandedLinkId}
                   handleUpdateLinkStyle={handleUpdateLinkStyle}

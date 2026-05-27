@@ -1,7 +1,13 @@
-import { User, Plus, Link2, Trash2, Settings, ExternalLink, Image as ImageIcon } from 'lucide-react';
+import { User, Plus, Link2, Trash2, Settings, ExternalLink, Image as ImageIcon, ArrowUp, ArrowDown, Copy, CheckCircle2 } from 'lucide-react';
 import { FaTwitter, FaInstagram, FaYoutube, FaTiktok, FaFacebook, FaGithub, FaLinkedin, FaSpotify, FaDiscord, FaTwitch } from 'react-icons/fa';
 
 const AVAILABLE_ICONS = { FaTwitter, FaInstagram, FaYoutube, FaTiktok, FaFacebook, FaGithub, FaLinkedin, FaSpotify, FaDiscord, FaTwitch };
+const LINK_TEMPLATES = [
+  { title: 'Book a consultation', url: 'https://calendly.com/your-name', iconName: 'FaLinkedin', buttonStyle: 'solid' },
+  { title: 'Shop my recommended tools', url: 'https://your-store.com', iconName: 'FaSpotify', buttonStyle: 'soft' },
+  { title: 'Join my newsletter', url: 'https://substack.com', iconName: 'FaTwitter', buttonStyle: 'outline' },
+  { title: 'View portfolio and case studies', url: 'https://your-domain.com', iconName: 'FaGithub', buttonStyle: 'solid' }
+];
 
 export default function LinksTab({
   profile,
@@ -25,6 +31,9 @@ export default function LinksTab({
   handleToggleLink,
   handleDeleteLink,
   handleEditLinkText,
+  handleMoveLink,
+  handleDuplicateLink,
+  handleAddTemplateLink,
   expandedLinkId,
   setExpandedLinkId,
   handleUpdateLinkStyle,
@@ -33,8 +42,32 @@ export default function LinksTab({
   getSocialLink,
   setSocialLink
 }) {
+  const activeLinks = profile.links.filter(link => link.active).length;
+  const checklist = [
+    { label: 'Upload a clear profile photo', done: Boolean(profile.avatarUrl) },
+    { label: 'Write a specific bio with your offer', done: Boolean(profile.bio && profile.bio.trim().length > 20) },
+    { label: 'Publish at least 3 active links', done: activeLinks >= 3 },
+    { label: 'Add social profile icons', done: ['instagram', 'youtube', 'twitter', 'tiktok', 'facebook', 'github', 'linkedin'].some(platform => getSocialLink(platform)) },
+    { label: 'Set SEO title and description', done: Boolean(profile.seo?.title && profile.seo?.description) }
+  ];
+
   return (
     <>
+      <section className="editor-card launch-checklist-card">
+        <div>
+          <p className="eyebrow-label">Launch Checklist</p>
+          <h2 className="card-title compact-title"><CheckCircle2 size={18} /> Business-ready basics</h2>
+        </div>
+        <div className="checklist-grid">
+          {checklist.map(item => (
+            <div key={item.label} className={`checklist-item ${item.done ? 'done' : ''}`}>
+              <CheckCircle2 size={16} />
+              <span>{item.label}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* Profile Info */}
       <section className="editor-card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
@@ -118,7 +151,7 @@ export default function LinksTab({
         </div>
 
         <div className="form-group" style={{ marginBottom: '1.5rem', borderTop: '1px solid var(--border-light)', paddingTop: '1.5rem' }}>
-          <label style={{ fontWeight: '600', display: 'block', marginBottom: '0.75rem' }}>🔗 Social Profile Handles (Displays as quick icons)</label>
+          <label style={{ fontWeight: '600', display: 'block', marginBottom: '0.75rem' }}>Social Profile Handles</label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.75rem' }}>
             {['instagram', 'youtube', 'twitter', 'tiktok', 'facebook', 'github', 'linkedin'].map(platform => (
               <div key={platform} style={{ display: 'flex', flexDirection: 'column' }}>
@@ -232,7 +265,7 @@ export default function LinksTab({
           )}
           
           {isUsernameChecked && isUsernameAvailable && (
-            <p style={{ color: 'var(--success)', fontSize: '0.8rem', marginTop: '0.25rem' }}>✓ Username is available!</p>
+            <p style={{ color: 'var(--success)', fontSize: '0.8rem', marginTop: '0.25rem' }}>Username is available.</p>
           )}
         </div>
         
@@ -257,7 +290,7 @@ export default function LinksTab({
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               className="input-control" 
-              placeholder="e.g. 🛍️ Visit My Storefront"
+              placeholder="e.g. Visit My Storefront"
               required
             />
           </div>
@@ -280,6 +313,23 @@ export default function LinksTab({
         </form>
       </section>
 
+      <section className="editor-card">
+        <h2 className="card-title"><Plus size={18} /> Quick Link Templates</h2>
+        <div className="template-grid">
+          {LINK_TEMPLATES.map(template => (
+            <button
+              key={template.title}
+              type="button"
+              className="template-button"
+              onClick={() => handleAddTemplateLink(template)}
+            >
+              <span>{template.title}</span>
+              <small>{template.url.replace(/^https?:\/\//, '')}</small>
+            </button>
+          ))}
+        </div>
+      </section>
+
       {/* Active Links List */}
       <section className="editor-card">
         <h2 className="card-title"><Link2 size={18} /> Manage Active Links</h2>
@@ -293,8 +343,34 @@ export default function LinksTab({
             {profile.links.map((link) => (
               <div key={link.id} className="link-editor-item">
                 <div className="link-item-header">
-                  <span className="link-drag-handle">🔗 Link Edit</span>
+                  <span className="link-drag-handle">Link #{profile.links.indexOf(link) + 1}</span>
                   <div className="link-actions">
+                    <button
+                      type="button"
+                      onClick={() => handleMoveLink(link.id, -1)}
+                      className="icon-action"
+                      title="Move link up"
+                      disabled={profile.links.indexOf(link) === 0}
+                    >
+                      <ArrowUp size={15} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleMoveLink(link.id, 1)}
+                      className="icon-action"
+                      title="Move link down"
+                      disabled={profile.links.indexOf(link) === profile.links.length - 1}
+                    >
+                      <ArrowDown size={15} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDuplicateLink(link.id)}
+                      className="icon-action"
+                      title="Duplicate link as inactive draft"
+                    >
+                      <Copy size={15} />
+                    </button>
                     <label className="switch">
                       <input 
                         type="checkbox" 
@@ -352,7 +428,7 @@ export default function LinksTab({
                         <div style={{ marginBottom: '1rem', padding: '0.5rem', border: '1px solid var(--accent-secondary)', borderRadius: '4px' }}>
                           <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
                             <input type="checkbox" checked={link.linkType === 'product'} onChange={(e) => handleUpdateLinkStyle(link.id, 'linkType', e.target.checked ? 'product' : 'link')} />
-                            🛒 Sell as Product
+                            Sell as Product
                           </label>
                           {link.linkType === 'product' && (
                             <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -367,7 +443,7 @@ export default function LinksTab({
                         </div>
 
                         <div style={{ marginBottom: '1rem', padding: '0.5rem', border: '1px solid var(--border-light)', borderRadius: '6px', background: 'rgba(245, 158, 11, 0.05)' }}>
-                          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#f59e0b', display: 'block', marginBottom: '0.5rem' }}>⏰ Link Scheduling (Pro Feature)</span>
+                          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#f59e0b', display: 'block', marginBottom: '0.5rem' }}>Link Scheduling (Pro Feature)</span>
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                             <div>
                               <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Show From</label>

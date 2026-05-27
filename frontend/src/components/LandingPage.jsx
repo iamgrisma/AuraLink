@@ -1,140 +1,143 @@
-/* eslint-disable no-unused-vars */
-import { Link2, Sparkles, BarChart3, Palette, ShieldCheck, ArrowRight, Check } from 'lucide-react';
+import { Link2, BarChart3, Palette, ShieldCheck, ArrowRight, Check, LineChart, Lock, Smartphone } from 'lucide-react';
 
 export default function LandingPage({ onNavigate }) {
   return (
     <div className="landing-page">
-      <div className="gradient-bg-effect"></div>
-      
-      {/* Navbar */}
-      <nav className="navbar">
+      <nav className="navbar landing-nav">
         <div className="nav-brand">
           <Link2 size={24} />
           <span>AuraLink</span>
         </div>
         <div className="nav-links">
+          <button onClick={() => onNavigate('/pro')} className="nav-link">Pricing</button>
           <button onClick={() => onNavigate('/auth')} className="btn btn-secondary">Sign In</button>
-          <button onClick={() => onNavigate('/auth')} className="btn btn-primary">Get Started</button>
+          <button onClick={() => onNavigate('/auth')} className="btn btn-primary">Create Page</button>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="hero">
-        <div className="hero-tagline">
-          <Sparkles size={14} style={{ marginRight: '4px' }} />
-          The Ultimate Link-in-Bio Platform
-        </div>
-        <h1 className="hero-title">
-          One Link. Premium Styles.<br />
-          <span>Ultimate Creator Analytics.</span>
-        </h1>
-        <p className="hero-desc">
-          Build a gorgeous, personalized link page for your social bios. Track affiliate clicks, monitor views in real-time, and customize every pixel with designer themes.
-        </p>
-        <div className="hero-ctas">
-          <button onClick={() => onNavigate('/auth')} className="btn btn-primary">
-            Create Your Page <ArrowRight size={16} />
-          </button>
-          <a href="#pricing" className="btn btn-secondary">View Pricing</a>
+      <section className="saas-hero">
+        <div className="hero-copy">
+          <p className="eyebrow-label">Creator storefront and link-in-bio system</p>
+          <h1>A professional public profile for links, products, and creator revenue.</h1>
+          <p>
+            AuraLink gives creators one polished page for social bios, affiliate links,
+            product offers, analytics, SEO, media storage, and premium customization.
+          </p>
+          <div className="hero-ctas">
+            <button onClick={() => onNavigate('/auth')} className="btn btn-primary">
+              Launch your page <ArrowRight size={16} />
+            </button>
+            <button onClick={() => onNavigate('/@creator1')} className="btn btn-secondary">
+              View live demo
+            </button>
+          </div>
+          <div className="trust-row">
+            <span><Check size={15} /> SEO-ready public pages</span>
+            <span><Check size={15} /> Creator analytics</span>
+            <span><Check size={15} /> Pro upgrade workflow</span>
+          </div>
         </div>
 
-        {/* Floating Mockup Showcase */}
-        <div className="mockup-showcase">
-          <div className="phone-mockup">
-            <div className="phone-speaker"></div>
-            <div className="phone-screen" style={{ background: 'linear-gradient(135deg, #1e1b4b, #311042)', color: '#fff' }}>
-              <img 
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80" 
-                alt="Avatar" 
-                className="bio-avatar" 
-              />
-              <h2 className="bio-name">Alex Rivers</h2>
-              <p className="bio-description" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem' }}>Digital Creator & Tech Reviewer</p>
-              
-              <div className="bio-links-container">
-                <div className="bio-link-button theme-glassmorphic-btn">🎥 My YouTube Channel</div>
-                <div className="bio-link-button theme-glassmorphic-btn">💻 Premium Notion Workspaces</div>
-                <div className="bio-link-button theme-glassmorphic-btn">🛍️ Shop Setup & Gear</div>
+        <div className="product-preview" aria-label="AuraLink product preview">
+          <div className="preview-toolbar">
+            <span>AuraLink Studio</span>
+            <small>Live preview</small>
+          </div>
+          <div className="preview-body">
+            <div className="preview-panel">
+              <div className="preview-stat">
+                <span>Views</span>
+                <strong>12,480</strong>
               </div>
-              
-              <div className="branding-tag">
-                <Link2 size={12} /> Powered by <span>AuraLink</span>
+              <div className="preview-stat">
+                <span>Clicks</span>
+                <strong>3,916</strong>
               </div>
+              <div className="preview-stat">
+                <span>CTR</span>
+                <strong>31.4%</strong>
+              </div>
+              <div className="preview-list">
+                <div><span /> Consultation Booking</div>
+                <div><span /> Creator Toolkit</div>
+                <div><span /> Newsletter Signup</div>
+              </div>
+            </div>
+            <div className="mini-phone">
+              <div className="mini-avatar" />
+              <strong>Alex Rivers</strong>
+              <p>Creator, consultant, and digital product builder.</p>
+              <button>Book a strategy call</button>
+              <button>Shop creator toolkit</button>
+              <button>Join the newsletter</button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Grid */}
-      <section className="pricing-section" style={{ borderTop: '1px solid var(--border-light)', paddingTop: '6rem' }}>
-        <h2 className="pricing-title">Everything you need to grow</h2>
-        <div className="pricing-grid features-grid">
-          <div className="price-card" style={{ padding: '2rem' }}>
-            <div className="stat-icon" style={{ marginBottom: '1rem' }}><Palette size={24} /></div>
-            <h3>Premium Themes</h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
-              Choose from gorgeous pre-built presets or customize colors, gradients, fonts, and buttons to match your brand style.
-            </p>
-          </div>
-          <div className="price-card" style={{ padding: '2rem' }}>
-            <div className="stat-icon" style={{ marginBottom: '1rem' }}><BarChart3 size={24} /></div>
-            <h3>Real-Time Analytics</h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
-              Track views, link clicks, CTR, timeline records, and referral sources in a responsive dashboard environment.
-            </p>
-          </div>
-          <div className="price-card" style={{ padding: '2rem' }}>
-            <div className="stat-icon" style={{ marginBottom: '1rem' }}><ShieldCheck size={24} /></div>
-            <h3>Affiliate Optimization</h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
-              Optimized for affiliate marketers. Create clean, high-CTR link descriptions to boost your sales.
-            </p>
-          </div>
+      <section className="business-features">
+        <div className="section-heading">
+          <p className="eyebrow-label">Business Toolkit</p>
+          <h2>Built for people who need their profile to convert.</h2>
+        </div>
+        <div className="feature-grid-pro">
+          <Feature icon={<Palette size={22} />} title="Brand control" text="Tune themes, buttons, social icons, SEO metadata, and custom styling for a stronger public brand." />
+          <Feature icon={<BarChart3 size={22} />} title="Performance insight" text="Track page views, link clicks, referral sources, CTR, and link-level performance from the dashboard." />
+          <Feature icon={<Smartphone size={22} />} title="Mobile-first preview" text="Design with a live phone simulator so your profile feels polished where most visitors see it." />
+          <Feature icon={<LineChart size={22} />} title="Revenue links" text="Mark product links, show prices, schedule campaigns, and structure offers for affiliate or service sales." />
+          <Feature icon={<ShieldCheck size={22} />} title="Trust and moderation" text="Report handling, account suspension tools, admin approvals, and payment review workflows are built in." />
+          <Feature icon={<Lock size={22} />} title="Premium controls" text="Offer paid upgrades with watermark removal, custom CSS, higher storage, short usernames, and premium themes." />
         </div>
       </section>
 
-      {/* Pricing Tiers */}
-      <section id="pricing" className="pricing-section" style={{ borderTop: '1px solid var(--border-light)', paddingBottom: '8rem' }}>
-        <h2 className="pricing-title">Simple, transparent pricing</h2>
+      <section id="pricing" className="pricing-section professional-pricing">
+        <div className="section-heading">
+          <p className="eyebrow-label">Pricing</p>
+          <h2>Start free. Upgrade when your profile becomes a business asset.</h2>
+        </div>
         <div className="pricing-grid">
-          {/* Free Tier */}
           <div className="price-card">
-            <h3 className="price-name">Basic Creator</h3>
-            <div className="price-num">$0<span>/ month</span></div>
+            <h3 className="price-name">Free</h3>
+            <div className="price-num">Rs. 0<span>/ forever</span></div>
             <ul className="price-features">
-              <li><Check size={16} /> Unlimited active links</li>
-              <li><Check size={16} /> Standard theme options</li>
-              <li><Check size={16} /> Basic view count tracking</li>
-              <li><Check size={16} /> AuraLink branding on page</li>
+              <li><Check size={16} /> Unlimited standard links</li>
+              <li><Check size={16} /> Basic analytics</li>
+              <li><Check size={16} /> Standard themes</li>
+              <li><Check size={16} /> 15MB media storage</li>
             </ul>
-            <button onClick={() => onNavigate('/auth')} className="btn btn-secondary" style={{ width: '100%', justifyContent: 'center' }}>
-              Start for Free
-            </button>
+            <button onClick={() => onNavigate('/auth')} className="btn btn-secondary full-width">Start free</button>
           </div>
 
-          {/* Premium Tier */}
           <div className="price-card premium">
-            <div className="badge-popular">Popular</div>
-            <h3 className="price-name">Aura Pro</h3>
-            <div className="price-num">$9<span>/ month</span></div>
+            <div className="badge-popular">Best value</div>
+            <h3 className="price-name">AuraLink Pro</h3>
+            <div className="price-num">Rs. 100<span>/ year</span></div>
             <ul className="price-features">
-              <li><Check size={16} /> Everything in Basic</li>
-              <li><Check size={16} /> All Premium gradient & glass themes</li>
-              <li><Check size={16} /> Advanced Analytics (referrers, link CTR, timeline charts)</li>
-              <li><Check size={16} /> Custom fonts and button shapes</li>
-              <li><Check size={16} /> Remove AuraLink branding</li>
+              <li><Check size={16} /> Premium themes and custom CSS</li>
+              <li><Check size={16} /> 100MB media storage</li>
+              <li><Check size={16} /> Short usernames</li>
+              <li><Check size={16} /> Link scheduling and product labels</li>
+              <li><Check size={16} /> Watermark control</li>
             </ul>
-            <button onClick={() => onNavigate('/auth')} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-              Go Premium Pro
-            </button>
+            <button onClick={() => onNavigate('/auth')} className="btn btn-primary full-width">Upgrade to Pro</button>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer style={{ borderTop: '1px solid var(--border-light)', padding: '2rem 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-        <p>&copy; 2026 AuraLink. All rights reserved. Created for digital leaders.</p>
+      <footer className="site-footer">
+        <span>AuraLink</span>
+        <p>Professional link pages for creators, consultants, and digital businesses.</p>
       </footer>
+    </div>
+  );
+}
+
+function Feature({ icon, title, text }) {
+  return (
+    <div className="feature-card-pro">
+      <div className="stat-icon">{icon}</div>
+      <h3>{title}</h3>
+      <p>{text}</p>
     </div>
   );
 }

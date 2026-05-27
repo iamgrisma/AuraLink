@@ -21,7 +21,7 @@ export default function PublicBioPage({ username }) {
     if (!reportReason) return;
     setReportStatus('submitting');
     try {
-      const loggedInUser = JSON.parse(localStorage.getItem('auralink_user'));
+      const loggedInUser = JSON.parse(localStorage.getItem('auralink_user') || 'null');
       await fetch(`${API_BASE}/report`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -95,7 +95,7 @@ export default function PublicBioPage({ username }) {
       if (url.hostname.includes('youtube.com')) return 'YouTube';
       if (url.hostname.includes('facebook.com')) return 'Facebook';
       return url.hostname;
-    } catch (e) {
+    } catch {
       return 'Direct';
     }
   };
@@ -144,7 +144,7 @@ export default function PublicBioPage({ username }) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: '1rem', background: '#070913', color: '#fff' }}>
         <RefreshCw className="animate-spin" size={24} />
-        <span>Visiting page...</span>
+        <span>Loading profile...</span>
       </div>
     );
   }
@@ -152,8 +152,8 @@ export default function PublicBioPage({ username }) {
   if (error) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: '1rem', background: '#070913', color: '#fff', textAlign: 'center', padding: '2rem' }}>
-        <h2 style={{ fontSize: '2rem', color: 'var(--danger)' }}>404 Not Found</h2>
-        <p style={{ color: 'var(--text-secondary)' }}>The AuraLink profile `@{username}` does not exist or has been removed.</p>
+        <h2 style={{ fontSize: '2rem', color: 'var(--danger)' }}>Profile not found</h2>
+        <p style={{ color: 'var(--text-secondary)' }}>The AuraLink profile @{username} does not exist or has been removed.</p>
         <a href="/" className="btn btn-primary" style={{ marginTop: '1.5rem' }}>Create Your Own Bio Page</a>
       </div>
     );
@@ -238,7 +238,7 @@ export default function PublicBioPage({ username }) {
           {profile.socialLinksJson && (() => {
             try {
               const socialLinks = JSON.parse(profile.socialLinksJson);
-              const activePlatforms = Object.entries(socialLinks).filter(([_, value]) => value && value.trim() !== '');
+              const activePlatforms = Object.entries(socialLinks).filter(([, value]) => value && value.trim() !== '');
               if (activePlatforms.length === 0) return null;
               
               return (
@@ -326,12 +326,13 @@ export default function PublicBioPage({ username }) {
 
               const IconComponent = link.iconName && AVAILABLE_ICONS[link.iconName] ? AVAILABLE_ICONS[link.iconName] : null;
 
-              let parsedUrlHostname = '';
-              try {
-                parsedUrlHostname = new URL(link.url).hostname;
-              } catch(e) {
-                parsedUrlHostname = link.url;
-              }
+              const parsedUrlHostname = (() => {
+                try {
+                  return new URL(link.url).hostname;
+                } catch {
+                  return link.url;
+                }
+              })();
 
               return (
                 <a 
@@ -358,6 +359,13 @@ export default function PublicBioPage({ username }) {
               );
             })}
           </div>
+
+          {profile.links.filter(l => l.active).length === 0 && (
+            <div className="public-empty-state">
+              <strong>No public links yet</strong>
+              <span>This creator is still setting up their page.</span>
+            </div>
+          )}
 
           {/* Brand stamp & Report link */}
           <div className="branding-tag" style={{ color: globalFontColor, opacity: 0.6, marginTop: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.8rem' }}>

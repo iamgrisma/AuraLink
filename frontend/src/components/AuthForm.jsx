@@ -146,9 +146,9 @@ export default function AuthForm({ onAuthSuccess, onBackToHome }) {
         </form>
 
         <div style={{ margin: '1.5rem 0', display: 'flex', alignItems: 'center', color: 'var(--text-muted)' }}>
-          <div style={{ flex: 1, height: '1px', background: 'var(--border-color)' }}></div>
+          <div style={{ flex: 1, height: '1px', background: 'var(--border-light)' }}></div>
           <span style={{ padding: '0 1rem', fontSize: '0.85rem' }}>OR</span>
-          <div style={{ flex: 1, height: '1px', background: 'var(--border-color)' }}></div>
+          <div style={{ flex: 1, height: '1px', background: 'var(--border-light)' }}></div>
         </div>
 
         <div ref={googleButtonRef} style={{ display: 'flex', justifyContent: 'center', width: '100%' }}></div>

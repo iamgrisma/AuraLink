@@ -1,4 +1,3 @@
-import React from 'react';
 import { Palette, Sparkles } from 'lucide-react';
 
 const THEME_PRESETS = [

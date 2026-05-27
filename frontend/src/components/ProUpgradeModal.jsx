@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { X, CheckCircle, ArrowRight, ShieldCheck, Star } from 'lucide-react';
 
 export default function ProUpgradeModal({ isOpen, onClose, username, onUpgradeSuccess }) {

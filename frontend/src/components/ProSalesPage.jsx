@@ -1,4 +1,3 @@
-import React from 'react';
 import { Check, ArrowLeft, Star } from 'lucide-react';
 
 export default function ProSalesPage({ onNavigate }) {

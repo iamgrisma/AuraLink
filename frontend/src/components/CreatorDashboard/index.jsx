@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { 
   Link2, BarChart3, Palette, User, Save, 
-  ExternalLink, LogOut, RefreshCw, Eye, Sparkles, Settings, Shield,
+  LogOut, RefreshCw, Eye, Sparkles, Shield,
   Menu, X
 } from 'lucide-react';
-import { FaTwitter, FaInstagram, FaYoutube, FaTiktok, FaFacebook, FaGithub, FaLinkedin, FaSpotify, FaDiscord, FaTwitch } from 'react-icons/fa';
 import MediaManager from '../MediaManager';
 import ProUpgradeModal from '../ProUpgradeModal';
 import Simulator from './Simulator';
@@ -67,6 +66,7 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
   const [showProModal, setShowProModal] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTempUsername(username);
     setIsUsernameChecked(false);
   }, [username]);
@@ -186,6 +186,7 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
   }, [username]);
 
@@ -269,7 +270,7 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
     try {
       const json = profile.socialLinksJson ? JSON.parse(profile.socialLinksJson) : {};
       return json[platform] || '';
-    } catch (e) {
+    } catch {
       return '';
     }
   };
@@ -595,6 +596,7 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
                   setTempUsername={setTempUsername}
                   isUsernameAvailable={isUsernameAvailable}
                   isUsernameChecked={isUsernameChecked}
+                  setIsUsernameChecked={setIsUsernameChecked}
                   usernameSuggestions={usernameSuggestions}
                   changingUsername={changingUsername}
                   handleCheckUsername={handleCheckUsername}

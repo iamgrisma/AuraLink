@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link2, User, Eye, X } from 'lucide-react';
 import { FaTwitter, FaInstagram, FaYoutube, FaTiktok, FaFacebook, FaGithub, FaLinkedin, FaSpotify, FaDiscord, FaTwitch } from 'react-icons/fa';
 
@@ -54,7 +53,7 @@ export default function Simulator({ profile, username, proStatus, showMobilePrev
           {profile.socialLinksJson && (() => {
             try {
               const socialLinks = JSON.parse(profile.socialLinksJson);
-              const activePlatforms = Object.entries(socialLinks).filter(([_, value]) => value && value.trim() !== '');
+              const activePlatforms = Object.entries(socialLinks).filter(([, value]) => value && value.trim() !== '');
               if (activePlatforms.length === 0) return null;
               
               const getPlatformIcon = (platform) => {
@@ -72,7 +71,7 @@ export default function Simulator({ profile, username, proStatus, showMobilePrev
 
               return (
                 <div className="bio-social-bar" style={{ display: 'flex', justifyContent: 'center', gap: '0.8rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-                  {activePlatforms.map(([platform, handle]) => {
+                  {activePlatforms.map(([platform]) => {
                     const Icon = getPlatformIcon(platform);
                     if (!Icon) return null;
                     return (
@@ -99,7 +98,7 @@ export default function Simulator({ profile, username, proStatus, showMobilePrev
                   })}
                 </div>
               );
-            } catch (e) {
+            } catch {
               return null;
             }
           })()}
@@ -139,12 +138,13 @@ export default function Simulator({ profile, username, proStatus, showMobilePrev
 
               const IconComponent = link.iconName && AVAILABLE_ICONS[link.iconName] ? AVAILABLE_ICONS[link.iconName] : null;
 
-              let parsedUrlHostname = '';
-              try {
-                parsedUrlHostname = new URL(link.url).hostname;
-              } catch(e) {
-                parsedUrlHostname = link.url;
-              }
+              const parsedUrlHostname = (() => {
+                try {
+                  return new URL(link.url).hostname;
+                } catch {
+                  return link.url;
+                }
+              })();
 
               return (
                 <div 

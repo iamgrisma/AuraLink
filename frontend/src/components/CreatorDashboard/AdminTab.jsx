@@ -1,15 +1,11 @@
-import React from 'react';
 import { Settings, BarChart3, Shield, Trash2 } from 'lucide-react';
 
 export default function AdminTab({
   adminSettings,
   setAdminSettings,
   adminPayments,
-  setAdminPayments,
   adminUsers,
-  setAdminUsers,
   adminReports,
-  setAdminReports,
   savingSettings,
   handleSaveSettings,
   handleAdminQRUpload,

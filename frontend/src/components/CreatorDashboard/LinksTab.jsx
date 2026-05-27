@@ -1,4 +1,3 @@
-import React from 'react';
 import { User, Plus, Link2, Trash2, Settings, ExternalLink, Image as ImageIcon } from 'lucide-react';
 import { FaTwitter, FaInstagram, FaYoutube, FaTiktok, FaFacebook, FaGithub, FaLinkedin, FaSpotify, FaDiscord, FaTwitch } from 'react-icons/fa';
 
@@ -13,6 +12,7 @@ export default function LinksTab({
   setTempUsername,
   isUsernameAvailable,
   isUsernameChecked,
+  setIsUsernameChecked,
   usernameSuggestions,
   changingUsername,
   handleCheckUsername,

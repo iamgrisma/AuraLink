@@ -1,4 +1,3 @@
-import React from 'react';
 import { Eye, Link2, BarChart3 } from 'lucide-react';
 
 export default function AnalyticsTab({ analytics }) {

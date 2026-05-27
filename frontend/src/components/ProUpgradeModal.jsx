@@ -184,7 +184,7 @@ export default function ProUpgradeModal({ isOpen, onClose, username, onUpgradeSu
               {receiptUrl && (
                 <div style={{ marginTop: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <img src={receiptUrl} alt="Receipt Preview" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border-light)' }} />
-                  <span style={{ fontSize: '0.75rem', color: 'var(--success)' }}>✓ Receipt uploaded</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--success)' }}>Receipt uploaded</span>
                 </div>
               )}
             </div>

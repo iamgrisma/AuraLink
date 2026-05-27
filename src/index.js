@@ -84,7 +84,7 @@ app.post('/api/auth/register', async (c) => {
           'transparent'
         ),
       c.env.DB.prepare('INSERT INTO links (id, username, title, url, is_active, display_order) VALUES (?, ?, ?, ?, 1, 0)')
-        .bind(crypto.randomUUID(), cleanUsername, '👋 Welcome to my Link Page!', 'https://google.com')
+        .bind(crypto.randomUUID(), cleanUsername, 'Start here', 'https://example.com')
     ]);
 
     return c.json({
@@ -238,7 +238,7 @@ app.get('/api/profile/:username', async (c) => {
               'transparent'
             ),
           c.env.DB.prepare('INSERT INTO links (id, username, title, url, is_active, display_order) VALUES (?, ?, ?, ?, 1, 0)')
-            .bind(crypto.randomUUID(), cleanUsername, '👋 Welcome to my Link Page!', 'https://google.com')
+            .bind(crypto.randomUUID(), cleanUsername, 'Start here', 'https://example.com')
         ]);
 
         profileData = await c.env.DB.prepare(`

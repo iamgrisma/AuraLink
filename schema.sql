@@ -155,13 +155,13 @@ INSERT OR IGNORE INTO profiles (username, name, bio, avatar_url, background_type
 ('admin', 'Admin Staff', 'AuraLink Platform Administrator.', '', 'gradient', 'linear-gradient(135deg, #0f172a, #1e293b)', 'Inter', 'solid', '#3b82f6', '#ffffff', 'transparent');
 
 INSERT OR IGNORE INTO links (id, username, title, url, is_active, display_order) VALUES 
-('link-1', 'creator1', '🎥 My YouTube Channel', 'https://youtube.com', 1, 0),
-('link-2', 'creator1', '💻 Premium Notion Workspaces (Use code AURA for 20% off)', 'https://notion.so', 1, 1),
-('link-3', 'creator1', '🛍️ Affiliate Shop: Setup & Gear', 'https://amazon.com', 1, 2),
-('link-4', 'creator1', '🐦 Daily Tech Tips on Twitter / X', 'https://x.com', 1, 3),
-('link-demo-1', 'demo', '🎨 UI Design Portfolio', 'https://dribbble.com', 1, 0),
-('link-demo-2', 'demo', '✍️ Read My Newsletter', 'https://substack.com', 1, 1),
-('link-admin-1', 'admin', '🔧 Admin Tools', 'https://auralink.com/admin', 1, 0);
+('link-1', 'creator1', 'My YouTube Channel', 'https://youtube.com', 1, 0),
+('link-2', 'creator1', 'Premium Notion Workspaces (Use code AURA for 20% off)', 'https://notion.so', 1, 1),
+('link-3', 'creator1', 'Affiliate Shop: Setup & Gear', 'https://amazon.com', 1, 2),
+('link-4', 'creator1', 'Daily Tech Tips on X', 'https://x.com', 1, 3),
+('link-demo-1', 'demo', 'UI Design Portfolio', 'https://dribbble.com', 1, 0),
+('link-demo-2', 'demo', 'Read My Newsletter', 'https://substack.com', 1, 1),
+('link-admin-1', 'admin', 'Admin Tools', 'https://auralink.com/admin', 1, 0);
 
 INSERT OR IGNORE INTO analytics_views (id, username, timestamp, referrer) VALUES
 ('v1', 'creator1', '2026-05-21 02:00:00', 'Instagram'),

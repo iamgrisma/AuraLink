@@ -135,7 +135,7 @@ export default function AuthForm({ onAuthSuccess, onBackToHome }) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="input-control" 
-              placeholder="••••••••"
+              placeholder="Enter your password"
               required
             />
           </div>

@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars, react-hooks/set-state-in-effect, react-hooks/exhaustive-deps, no-useless-assignment */
 import { useEffect, useState } from 'react';
-import { Link2, User, RefreshCw, Flag } from 'lucide-react';
+import { Link2, RefreshCw, Flag } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { FaTwitter, FaInstagram, FaYoutube, FaTiktok, FaFacebook, FaGithub, FaLinkedin, FaSpotify, FaDiscord, FaTwitch } from 'react-icons/fa';
 

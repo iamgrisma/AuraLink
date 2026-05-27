@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import LandingPage from './components/LandingPage';
 import AuthForm from './components/AuthForm';
-import CreatorDashboard from './components/CreatorDashboard';
+import CreatorDashboard from './components/CreatorDashboard/index';
 import PublicBioPage from './components/PublicBioPage';
 import ProSalesPage from './components/ProSalesPage';
 

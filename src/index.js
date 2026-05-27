@@ -12,6 +12,29 @@ async function hashPassword(password) {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+// Helper to check and enforce membership expiration dynamically
+async function checkAndEnforceMembership(db, username) {
+  try {
+    const user = await db.prepare('SELECT pro_status, pro_expires_at FROM users WHERE username = ?')
+      .bind(username)
+      .first();
+    if (user && user.pro_status === 'approved' && user.pro_expires_at) {
+      const expiresAt = new Date(user.pro_expires_at);
+      if (expiresAt < new Date()) {
+        // Expired! Downgrade
+        await db.prepare("UPDATE users SET pro_status = 'none' WHERE username = ?")
+          .bind(username)
+          .run();
+        return 'none';
+      }
+    }
+    return user?.pro_status || 'none';
+  } catch (err) {
+    console.error('Error enforcing membership:', err);
+    return 'none';
+  }
+}
+
 // Enable CORS
 app.use('/api/*', cors());
 
@@ -61,7 +84,7 @@ app.post('/api/auth/register', async (c) => {
           'transparent'
         ),
       c.env.DB.prepare('INSERT INTO links (id, username, title, url, is_active, display_order) VALUES (?, ?, ?, ?, 1, 0)')
-        .bind(crypto.randomUUID(), cleanUsername, '👋 Welcome to my Link Page!', 'https://google.com')
+        .bind(crypto.randomUUID(), cleanUsername, 'Start here', 'https://example.com')
     ]);
 
     return c.json({
@@ -181,8 +204,11 @@ app.get('/api/profile/:username', async (c) => {
   const cleanUsername = c.req.param('username').trim().toLowerCase();
 
   try {
+    // Dynamically check and enforce membership expiration
+    await checkAndEnforceMembership(c.env.DB, cleanUsername);
+
     let profileData = await c.env.DB.prepare(`
-      SELECT p.*, u.account_status, u.pro_status 
+      SELECT p.*, u.account_status, u.pro_status, u.pro_since, u.pro_expires_at 
       FROM profiles p 
       JOIN users u ON p.username = u.username 
       WHERE p.username = ?
@@ -212,11 +238,11 @@ app.get('/api/profile/:username', async (c) => {
               'transparent'
             ),
           c.env.DB.prepare('INSERT INTO links (id, username, title, url, is_active, display_order) VALUES (?, ?, ?, ?, 1, 0)')
-            .bind(crypto.randomUUID(), cleanUsername, '👋 Welcome to my Link Page!', 'https://google.com')
+            .bind(crypto.randomUUID(), cleanUsername, 'Start here', 'https://example.com')
         ]);
 
         profileData = await c.env.DB.prepare(`
-          SELECT p.*, u.account_status, u.pro_status 
+          SELECT p.*, u.account_status, u.pro_status, u.pro_since, u.pro_expires_at 
           FROM profiles p 
           JOIN users u ON p.username = u.username 
           WHERE p.username = ?
@@ -233,7 +259,7 @@ app.get('/api/profile/:username', async (c) => {
     const profile = profileData;
 
     // Get active links ordered by display_order
-    const { results: links } = await c.env.DB.prepare('SELECT id, title, url, is_active, button_style, button_color, button_text_color, button_border_color, button_border_radius, show_url, image_url, icon_name, link_type, price, currency FROM links WHERE username = ? ORDER BY display_order ASC')
+    const { results: links } = await c.env.DB.prepare('SELECT id, title, url, is_active, button_style, button_color, button_text_color, button_border_color, button_border_radius, show_url, image_url, icon_name, link_type, price, currency, start_date, end_date FROM links WHERE username = ? ORDER BY display_order ASC')
       .bind(cleanUsername)
       .all();
 
@@ -259,6 +285,11 @@ app.get('/api/profile/:username', async (c) => {
         allowIndexing: Boolean(profile.allow_indexing !== 0)
       },
       proStatus: profile.pro_status,
+      proSince: profile.pro_since,
+      proExpiresAt: profile.pro_expires_at,
+      showWatermark: Boolean(profile.show_watermark !== 0),
+      customCss: profile.custom_css,
+      socialLinksJson: profile.social_links_json,
       links: links.map(l => ({
         id: l.id,
         title: l.title,
@@ -274,7 +305,9 @@ app.get('/api/profile/:username', async (c) => {
         iconName: l.icon_name,
         linkType: l.link_type,
         price: l.price,
-        currency: l.currency
+        currency: l.currency,
+        startDate: l.start_date,
+        endDate: l.end_date
       })),
       googleAnalyticsId: profile.google_analytics_id
     };
@@ -289,7 +322,7 @@ app.get('/api/profile/:username', async (c) => {
 // Update Profile
 app.put('/api/profile/:username', async (c) => {
   const cleanUsername = c.req.param('username').trim().toLowerCase();
-  const { name, bio, avatarUrl, theme, seo, links, googleAnalyticsId } = await c.req.json();
+  const { name, bio, avatarUrl, theme, seo, links, googleAnalyticsId, showWatermark, customCss, socialLinksJson } = await c.req.json();
 
   try {
     // 1. Update profiles table
@@ -310,6 +343,9 @@ app.put('/api/profile/:username', async (c) => {
         seo_description = COALESCE(?, seo_description),
         allow_indexing = COALESCE(?, allow_indexing),
         google_analytics_id = COALESCE(?, google_analytics_id),
+        show_watermark = COALESCE(?, show_watermark),
+        custom_css = COALESCE(?, custom_css),
+        social_links_json = COALESCE(?, social_links_json),
         updated_at = CURRENT_TIMESTAMP
       WHERE username = ?
     `).bind(
@@ -328,6 +364,9 @@ app.put('/api/profile/:username', async (c) => {
       seo?.description,
       seo?.allowIndexing === false ? 0 : 1,
       googleAnalyticsId,
+      showWatermark === undefined ? null : (showWatermark ? 1 : 0),
+      customCss === undefined ? null : customCss,
+      socialLinksJson === undefined ? null : socialLinksJson,
       cleanUsername
     ).run();
 
@@ -339,7 +378,7 @@ app.put('/api/profile/:username', async (c) => {
       // Then, batch insert new links preserving display_order
       if (links.length > 0) {
         const statements = links.map((link, idx) => {
-          return c.env.DB.prepare('INSERT INTO links (id, username, title, url, is_active, display_order, button_style, button_color, button_text_color, button_border_color, button_border_radius, show_url, image_url, icon_name, link_type, price, currency) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+          return c.env.DB.prepare('INSERT INTO links (id, username, title, url, is_active, display_order, button_style, button_color, button_text_color, button_border_color, button_border_radius, show_url, image_url, icon_name, link_type, price, currency, start_date, end_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
             .bind(
               link.id || crypto.randomUUID(), 
               cleanUsername, 
@@ -357,7 +396,9 @@ app.put('/api/profile/:username', async (c) => {
               link.iconName || null,
               link.linkType || 'link',
               link.price || null,
-              link.currency || 'USD'
+              link.currency || 'USD',
+              link.startDate || null,
+              link.endDate || null
             );
         });
         await c.env.DB.batch(statements);
@@ -369,7 +410,7 @@ app.put('/api/profile/:username', async (c) => {
       .bind(cleanUsername)
       .first();
 
-    const { results: dbLinks } = await c.env.DB.prepare('SELECT id, title, url, is_active, button_style, button_color, button_text_color, button_border_color, button_border_radius, show_url, image_url, icon_name, link_type, price, currency FROM links WHERE username = ? ORDER BY display_order ASC')
+    const { results: dbLinks } = await c.env.DB.prepare('SELECT id, title, url, is_active, button_style, button_color, button_text_color, button_border_color, button_border_radius, show_url, image_url, icon_name, link_type, price, currency, start_date, end_date FROM links WHERE username = ? ORDER BY display_order ASC')
       .bind(cleanUsername)
       .all();
 
@@ -393,6 +434,9 @@ app.put('/api/profile/:username', async (c) => {
         description: profile.seo_description,
         allowIndexing: Boolean(profile.allow_indexing !== 0)
       },
+      showWatermark: Boolean(profile.show_watermark !== 0),
+      customCss: profile.custom_css,
+      socialLinksJson: profile.social_links_json,
       links: dbLinks.map(l => ({
         id: l.id,
         title: l.title,
@@ -408,7 +452,9 @@ app.put('/api/profile/:username', async (c) => {
         iconName: l.icon_name,
         linkType: l.link_type,
         price: l.price,
-        currency: l.currency
+        currency: l.currency,
+        startDate: l.start_date,
+        endDate: l.end_date
       })),
       googleAnalyticsId: profile.google_analytics_id
     };
@@ -497,15 +543,54 @@ app.post('/api/profile/:username/change-username', async (c) => {
   }
 });
 
+// Settings Endpoints
+app.get('/api/settings', async (c) => {
+  try {
+    const { results } = await c.env.DB.prepare('SELECT key, value FROM app_settings').all();
+    const settings = {};
+    results.forEach(row => {
+      settings[row.key] = row.value;
+    });
+    return c.json(settings);
+  } catch (err) {
+    return c.json({ error: 'Failed to fetch settings' }, 500);
+  }
+});
+
+app.put('/api/admin/settings', async (c) => {
+  try {
+    const settings = await c.req.json();
+    const statements = Object.entries(settings).map(([key, value]) => {
+      return c.env.DB.prepare('INSERT OR REPLACE INTO app_settings (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)').bind(key, String(value));
+    });
+    await c.env.DB.batch(statements);
+    return c.json({ message: 'Settings updated successfully' });
+  } catch (err) {
+    console.error(err);
+    return c.json({ error: 'Failed to update settings' }, 500);
+  }
+});
+
 // Request Pro Status
 app.post('/api/profile/:username/request-pro', async (c) => {
   const cleanUsername = c.req.param('username').trim().toLowerCase();
+  const { txnId, receiptImageUrl } = await c.req.json();
   try {
-    await c.env.DB.prepare("UPDATE users SET pro_status = 'pending' WHERE username = ? AND pro_status = 'none'")
-      .bind(cleanUsername)
-      .run();
+    const priceRow = await c.env.DB.prepare("SELECT value FROM app_settings WHERE key = 'membership_price_nrs'").first();
+    const price = priceRow ? parseFloat(priceRow.value) : 100.0;
+
+    const logId = crypto.randomUUID();
+
+    await c.env.DB.batch([
+      c.env.DB.prepare("UPDATE users SET pro_status = 'pending', pro_requested_at = CURRENT_TIMESTAMP WHERE username = ?")
+        .bind(cleanUsername),
+      c.env.DB.prepare("INSERT INTO payment_logs (id, username, amount, currency, transaction_id, payment_method, status, receipt_image_url) VALUES (?, ?, ?, 'NPR', ?, 'QR Code', 'pending', ?)")
+        .bind(logId, cleanUsername, price, txnId || null, receiptImageUrl || null)
+    ]);
+
     return c.json({ message: 'Pro status requested' });
   } catch (err) {
+    console.error(err);
     return c.json({ error: 'Error requesting pro' }, 500);
   }
 });
@@ -531,23 +616,54 @@ app.post('/api/report', async (c) => {
 // Get all users
 app.get('/api/admin/users', async (c) => {
   try {
-    const { results } = await c.env.DB.prepare("SELECT id, username, email, role, pro_status, account_status, created_at FROM users ORDER BY created_at DESC").all();
+    const { results } = await c.env.DB.prepare("SELECT id, username, email, role, pro_status, account_status, created_at, pro_since, pro_expires_at, pro_requested_at FROM users ORDER BY created_at DESC").all();
     return c.json(results);
   } catch (err) {
     return c.json({ error: 'Failed to fetch users' }, 500);
   }
 });
 
+// Get payment logs
+app.get('/api/admin/payments', async (c) => {
+  try {
+    const { results } = await c.env.DB.prepare("SELECT * FROM payment_logs ORDER BY created_at DESC").all();
+    return c.json(results);
+  } catch (err) {
+    return c.json({ error: 'Failed to fetch payment logs' }, 500);
+  }
+});
+
 // Approve/Reject Pro
 app.post('/api/admin/approve-pro/:username', async (c) => {
   const cleanUsername = c.req.param('username').trim().toLowerCase();
-  const { status } = await c.req.json(); // 'approved' or 'none'
+  const { status, pro_since, pro_expires_at, logId, adminNotes } = await c.req.json(); // status = 'approved' or 'none'
+
   try {
-    await c.env.DB.prepare("UPDATE users SET pro_status = ? WHERE username = ?")
-      .bind(status, cleanUsername)
-      .run();
+    const proSinceVal = status === 'approved' ? (pro_since || new Date().toISOString()) : null;
+    const proExpiresVal = status === 'approved' ? (pro_expires_at || null) : null;
+    const logStatusVal = status === 'approved' ? 'approved' : 'rejected';
+
+    const statements = [
+      c.env.DB.prepare("UPDATE users SET pro_status = ?, pro_since = ?, pro_expires_at = ? WHERE username = ?")
+        .bind(status, proSinceVal, proExpiresVal, cleanUsername)
+    ];
+
+    if (logId) {
+      statements.push(
+        c.env.DB.prepare("UPDATE payment_logs SET status = ?, admin_notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
+          .bind(logStatusVal, adminNotes || null, logId)
+      );
+    } else {
+      statements.push(
+        c.env.DB.prepare("UPDATE payment_logs SET status = ?, admin_notes = ?, updated_at = CURRENT_TIMESTAMP WHERE username = ? AND status = 'pending'")
+          .bind(logStatusVal, adminNotes || null, cleanUsername)
+      );
+    }
+
+    await c.env.DB.batch(statements);
     return c.json({ message: `Pro status updated to ${status}` });
   } catch (err) {
+    console.error(err);
     return c.json({ error: 'Failed to update pro status' }, 500);
   }
 });
@@ -883,6 +999,9 @@ app.get('/@:username', async (c) => {
   const origin = requestUrl.origin;
 
   try {
+    // Dynamically check and enforce membership expiration
+    await checkAndEnforceMembership(c.env.DB, username);
+
     let html = await getIndexHtml(c);
 
     // Fetch profile data for SEO injection

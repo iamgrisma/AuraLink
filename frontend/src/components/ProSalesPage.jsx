@@ -1,15 +1,23 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
 import { Check, ArrowLeft, Star } from 'lucide-react';
 
-export default function ProSalesPage() {
+export default function ProSalesPage({ onNavigate }) {
+  const handleLinkClick = (e, path) => {
+    e.preventDefault();
+    if (onNavigate) {
+      onNavigate(path);
+    } else {
+      window.history.pushState(null, '', path);
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    }
+  };
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', padding: '2rem' }}>
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
         
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', textDecoration: 'none', marginBottom: '2rem' }}>
+        <a href="/" onClick={(e) => handleLinkClick(e, '/')} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', textDecoration: 'none', marginBottom: '2rem' }}>
           <ArrowLeft size={16} /> Back to Home
-        </Link>
+        </a>
 
         <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', padding: '0.5rem 1rem', borderRadius: '2rem', fontWeight: 600, marginBottom: '1.5rem' }}>
@@ -53,9 +61,9 @@ export default function ProSalesPage() {
               <li style={featureItemStyle}><Check size={18} color="#10b981" /> Animated Pro Avatar Ring</li>
               <li style={featureItemStyle}><Check size={18} color="#10b981" /> Priority Support</li>
             </ul>
-            <Link to="/auth" className="btn-primary" style={{ display: 'block', textAlign: 'center', marginTop: '2rem', background: '#f59e0b', color: '#000', border: 'none', textDecoration: 'none' }}>
+            <a href="/auth" onClick={(e) => handleLinkClick(e, '/auth')} className="btn-primary" style={{ display: 'block', textAlign: 'center', marginTop: '2rem', background: '#f59e0b', color: '#000', border: 'none', textDecoration: 'none' }}>
               Upgrade Now
-            </Link>
+            </a>
           </div>
 
         </div>

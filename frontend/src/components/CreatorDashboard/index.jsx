@@ -298,7 +298,7 @@ function DashboardContent({ onLogout }) {
       {mediaTarget && (
         <MediaManager
           username={username}
-          onSelect={handleMediaSelect}
+          onSelectImage={handleMediaSelect}
           onClose={() => setMediaTarget(null)}
         />
       )}

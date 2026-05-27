@@ -136,36 +136,7 @@ export default function LinksTab({
               {AVATAR_FRAME_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
           </div>
-          <div className="form-group">
-            <label>Social layout</label>
-            <select
-              className="input-control"
-              value={profile.socialDisplayStyle || 'icons'}
-              onChange={(e) => handleUpdatePresentation('socialDisplayStyle', e.target.value)}
-            >
-              {SOCIAL_LAYOUT_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
-            </select>
-          </div>
-          <div className="form-group">
-            <label>Icon tone</label>
-            <select
-              className="input-control"
-              value={profile.socialIconStyle || 'brand'}
-              onChange={(e) => handleUpdatePresentation('socialIconStyle', e.target.value)}
-            >
-              {SOCIAL_TONE_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
-            </select>
-          </div>
-          <div className="form-group">
-            <label>Icon shape</label>
-            <select
-              className="input-control"
-              value={profile.socialIconShape || 'circle'}
-              onChange={(e) => handleUpdatePresentation('socialIconShape', e.target.value)}
-            >
-              {SOCIAL_SHAPE_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
-            </select>
-          </div>
+
         </div>
         <div className="presentation-preview">
           <div className={`avatar-shell avatar-${profile.avatarSize || 'md'} avatar-${profile.avatarFrameStyle || 'animated-border'}`}>
@@ -281,6 +252,27 @@ export default function LinksTab({
                 />
               </div>
             ))}
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.75rem', marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border-light)' }}>
+            <div>
+              <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', display: 'block' }}>Social Layout</label>
+              <select className="input-control" value={profile.socialDisplayStyle || 'icons'} onChange={(e) => handleUpdatePresentation('socialDisplayStyle', e.target.value)} style={{ fontSize: '0.8rem', padding: '0.4rem' }}>
+                {SOCIAL_LAYOUT_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', display: 'block' }}>Icon Tone</label>
+              <select className="input-control" value={profile.socialIconStyle || 'brand'} onChange={(e) => handleUpdatePresentation('socialIconStyle', e.target.value)} style={{ fontSize: '0.8rem', padding: '0.4rem' }}>
+                {SOCIAL_TONE_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', display: 'block' }}>Icon Shape</label>
+              <select className="input-control" value={profile.socialIconShape || 'circle'} onChange={(e) => handleUpdatePresentation('socialIconShape', e.target.value)} style={{ fontSize: '0.8rem', padding: '0.4rem' }}>
+                {SOCIAL_SHAPE_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+              </select>
+            </div>
           </div>
         </div>
 

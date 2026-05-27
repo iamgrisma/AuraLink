@@ -190,8 +190,11 @@ export default function Simulator({ profile, username, proStatus, showMobilePrev
               })();
 
               return (
-                <div 
+                <a 
                   key={link.id} 
+                  href={link.url}
+                  rel="noopener noreferrer nofollow"
+                  target="_blank"
                   className={buttonClass}
                   style={{...computedStyles, position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1rem', textDecoration: 'none'}}
                 >
@@ -206,7 +209,7 @@ export default function Simulator({ profile, username, proStatus, showMobilePrev
                     )}
                   </div>
                   {link.showUrl && <span style={{ fontSize: '0.7rem', opacity: 0.8, marginTop: '0.2rem' }}>{parsedUrlHostname}</span>}
-                </div>
+                </a>
               );
             })}
           </div>

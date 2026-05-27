@@ -249,7 +249,7 @@ export default function PublicBioPage({ username }) {
         key={platform}
         href={href}
         target="_blank"
-        rel="noreferrer"
+        rel="noopener noreferrer nofollow"
         className={itemClass}
         style={{
           color: toneColor,
@@ -375,7 +375,7 @@ export default function PublicBioPage({ username }) {
                   key={link.id} 
                   href={link.url}
                   target="_blank" 
-                  rel="noreferrer"
+                  rel="noopener noreferrer nofollow"
                   onClick={() => handleLinkClick(link.id)}
                   className={buttonClass}
                   style={{...computedStyles, position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1rem'}}

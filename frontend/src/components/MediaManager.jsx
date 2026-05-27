@@ -1,10 +1,12 @@
 /* eslint-disable no-unused-vars, react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 import { useState, useEffect } from 'react';
 import { Image, Upload, Trash2, X, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { useToast } from './ToastContext';
 
 const API_BASE = '/api';
 
 export default function MediaManager({ username, isPro, onSelectImage, onClose }) {
+  const { addToast } = useToast();
   const [mediaFiles, setMediaFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -34,7 +36,7 @@ export default function MediaManager({ username, isPro, onSelectImage, onClose }
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      alert('File is too large. Maximum size is 5MB.');
+      addToast({ type: 'error', message: 'File is too large. Maximum size is 5MB.' });
       return;
     }
 
@@ -52,11 +54,11 @@ export default function MediaManager({ username, isPro, onSelectImage, onClose }
         await fetchMedia();
       } else {
         const errData = await res.json();
-        alert(errData.error || 'Upload failed');
+        addToast({ type: 'error', message: errData.error || 'Upload failed' });
       }
     } catch (err) {
       console.error('Error uploading:', err);
-      alert('An error occurred during upload.');
+      addToast({ type: 'error', message: 'An error occurred during upload.' });
     } finally {
       setUploading(false);
     }
@@ -76,11 +78,11 @@ export default function MediaManager({ username, isPro, onSelectImage, onClose }
       if (res.ok) {
         setMediaFiles(prev => prev.filter(f => f.key !== fileKey));
       } else {
-        alert('Failed to delete file');
+        addToast({ type: 'error', message: 'Failed to delete file' });
       }
     } catch (err) {
       console.error(err);
-      alert('An error occurred while deleting.');
+      addToast({ type: 'error', message: 'An error occurred while deleting.' });
     }
   };
 

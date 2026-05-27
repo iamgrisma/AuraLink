@@ -11,10 +11,12 @@ import LinksTab from './LinksTab';
 import DesignTab from './DesignTab';
 import AnalyticsTab from './AnalyticsTab';
 import AdminTab from './AdminTab';
+import { useToast } from '../ToastContext';
 
 const API_BASE = '/api';
 
 export default function CreatorDashboard({ username, onLogout, isAdmin, onUsernameChange }) {
+  const { addToast } = useToast();
   const [activeTab, setActiveTab] = useState('links'); // 'links', 'design', 'analytics', 'admin'
   const [profile, setProfile] = useState(null);
   const [analytics, setAnalytics] = useState(null);
@@ -101,17 +103,17 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
       
       if (res.ok) {
         const data = await res.json();
-        alert('Your username has been updated successfully!');
+        addToast({ type: 'success', message: 'Your username has been updated successfully!' });
         if (onUsernameChange) {
           onUsernameChange(data.username);
         }
       } else {
         const errData = await res.json();
-        alert(errData.error || 'Failed to change username.');
+        addToast({ type: 'error', message: errData.error || 'Failed to change username.' });
       }
     } catch (err) {
       console.error(err);
-      alert('An error occurred during username update.');
+      addToast({ type: 'error', message: 'An error occurred during username update.' });
     } finally {
       setChangingUsername(false);
     }
@@ -240,7 +242,7 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
         const usersRes = await fetch(`${API_BASE}/admin/users`);
         if (usersRes.ok) setAdminUsers(await usersRes.json());
       } else {
-        alert('Action failed.');
+        addToast({ type: 'error', message: 'Action failed.' });
       }
     } catch (err) {
       console.error('Error performing admin action:', err);
@@ -259,7 +261,7 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
         const reportsRes = await fetch(`${API_BASE}/admin/reports`);
         if (reportsRes.ok) setAdminReports(await reportsRes.json());
       } else {
-        alert('Action failed.');
+        addToast({ type: 'error', message: 'Action failed.' });
       }
     } catch (err) {
       console.error('Error resolving report:', err);
@@ -297,13 +299,13 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
         body: JSON.stringify(adminSettings)
       });
       if (res.ok) {
-        alert('Global configurations saved successfully!');
+        addToast({ type: 'success', message: 'Global configurations saved successfully!' });
       } else {
-        alert('Failed to save settings.');
+        addToast({ type: 'error', message: 'Failed to save settings.' });
       }
     } catch (err) {
       console.error(err);
-      alert('Error saving settings.');
+      addToast({ type: 'error', message: 'Error saving settings.' });
     } finally {
       setSavingSettings(false);
     }
@@ -323,13 +325,13 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
       const data = await res.json();
       if (res.ok && data.url) {
         setAdminSettings(prev => ({ ...prev, payment_qr_url: data.url }));
-        alert('QR code uploaded successfully! Click "Save Configuration Settings" to apply it.');
+        addToast({ type: 'success', message: 'QR code uploaded successfully! Click "Save Configuration Settings" to apply it.' });
       } else {
-        alert(data.error || 'Failed to upload QR code');
+        addToast({ type: 'error', message: data.error || 'Failed to upload QR code' });
       }
     } catch (err) {
       console.error(err);
-      alert('QR upload error occurred.');
+      addToast({ type: 'error', message: 'QR upload error occurred.' });
     }
   };
 
@@ -348,7 +350,7 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
         })
       });
       if (res.ok) {
-        alert(`Successfully updated membership status for @${activeApproval.username}`);
+        addToast({ type: 'success', message: `Successfully updated membership status for @${activeApproval.username}` });
         const [uRes, pRes] = await Promise.all([
           fetch(`${API_BASE}/admin/users`),
           fetch(`${API_BASE}/admin/payments`)
@@ -358,11 +360,11 @@ export default function CreatorDashboard({ username, onLogout, isAdmin, onUserna
         setActiveApproval(null);
         setApprovalNotes('');
       } else {
-        alert('Failed to update membership.');
+        addToast({ type: 'error', message: 'Failed to update membership.' });
       }
     } catch (err) {
       console.error(err);
-      alert('An error occurred.');
+      addToast({ type: 'error', message: 'An error occurred.' });
     }
   };
 

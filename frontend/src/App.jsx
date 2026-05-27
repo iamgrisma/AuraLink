@@ -5,8 +5,9 @@ import AuthForm from './components/AuthForm';
 import CreatorDashboard from './components/CreatorDashboard/index';
 import PublicBioPage from './components/PublicBioPage';
 import ProSalesPage from './components/ProSalesPage';
+import { ToastProvider } from './components/ToastContext';
 
-export default function App() {
+function App() {
   const [currentPath, setCurrentPath] = useState(window.location.pathname || '/');
   const [user, setUser] = useState(null);
   const [role, setRole] = useState('user');
@@ -132,4 +133,12 @@ export default function App() {
     default:
       return <LandingPage onNavigate={navigateTo} />;
   }
+}
+
+export default function AppWrapper() {
+  return (
+    <ToastProvider>
+      <App />
+    </ToastProvider>
+  );
 }

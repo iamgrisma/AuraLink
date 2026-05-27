@@ -2194,3 +2194,40 @@ input:checked + .slider:before {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* Mobile QA fixes */
+@media screen and (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important; /* Prevent iOS input zoom */
+  }
+  
+  .hero-text h1 {
+    font-size: 2.5rem;
+  }
+  
+  .hero-text p {
+    font-size: 1.1rem;
+  }
+  
+  .public-link-button span {
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+  
+  .dashboard-command-center {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .public-url-pill {
+    max-width: 100%;
+    overflow: hidden;
+  }
+  
+  .public-url-pill span {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+}

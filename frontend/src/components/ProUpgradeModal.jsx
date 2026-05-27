@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { X, CheckCircle, ArrowRight, ShieldCheck, Star } from 'lucide-react';
+import { useToast } from './ToastContext';
 
 export default function ProUpgradeModal({ isOpen, onClose, username, onUpgradeSuccess }) {
+  const { addToast } = useToast();
   const [view, setView] = useState('pitch'); // 'pitch' or 'payment'
   const [paymentMade, setPaymentMade] = useState(false);
   const [txnId, setTxnId] = useState('');
@@ -50,11 +52,11 @@ export default function ProUpgradeModal({ isOpen, onClose, username, onUpgradeSu
       if (res.ok && data.url) {
         setReceiptUrl(data.url);
       } else {
-        alert(data.error || 'Failed to upload receipt screenshot');
+        addToast({ type: 'error', message: data.error || 'Failed to upload receipt screenshot' });
       }
     } catch (err) {
       console.error(err);
-      alert('Upload error occurred. Please try again.');
+      addToast({ type: 'error', message: 'Upload error occurred. Please try again.' });
     } finally {
       setUploading(false);
     }
@@ -69,15 +71,15 @@ export default function ProUpgradeModal({ isOpen, onClose, username, onUpgradeSu
         body: JSON.stringify({ txnId, receiptImageUrl: receiptUrl })
       });
       if (res.ok) {
-        alert('Pro request submitted! Admin will verify your payment shortly.');
+        addToast({ type: 'success', message: 'Pro request submitted! Admin will verify your payment shortly.' });
         onUpgradeSuccess();
         onClose();
       } else {
-        alert('Failed to request pro upgrade. Please try again.');
+        addToast({ type: 'error', message: 'Failed to request pro upgrade. Please try again.' });
       }
     } catch (err) {
       console.error(err);
-      alert('An error occurred.');
+      addToast({ type: 'error', message: 'An error occurred.' });
     } finally {
       setSubmitting(false);
     }

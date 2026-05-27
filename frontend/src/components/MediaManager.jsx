@@ -1,5 +1,4 @@
-/* eslint-disable no-unused-vars, react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Image, Upload, Trash2, X, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { useToast } from './ToastContext';
 
@@ -12,7 +11,7 @@ export default function MediaManager({ username, isPro, onSelectImage, onClose }
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchMedia = async () => {
+  const fetchMedia = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -25,11 +24,12 @@ export default function MediaManager({ username, isPro, onSelectImage, onClose }
     } finally {
       setLoading(false);
     }
-  };
+  }, [username]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchMedia();
-  }, [username]);
+  }, [fetchMedia]);
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];

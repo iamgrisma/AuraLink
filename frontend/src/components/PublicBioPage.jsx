@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars, react-hooks/set-state-in-effect, react-hooks/exhaustive-deps, no-useless-assignment */
+
 import { useEffect, useState } from 'react';
 import { Link2, RefreshCw, Flag } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
@@ -52,7 +52,7 @@ export default function PublicBioPage({ username }) {
         setReportStatus('');
         setReportReason('');
       }, 2000);
-    } catch(err) {
+    } catch {
       setReportStatus('error');
     }
   };

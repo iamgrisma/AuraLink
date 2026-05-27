@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars, react-hooks/set-state-in-effect, react-hooks/exhaustive-deps, react-hooks/immutability */
+
 import { useState, useEffect } from 'react';
 import LandingPage from './components/LandingPage';
 import AuthForm from './components/AuthForm';
@@ -12,7 +12,7 @@ function App() {
   const [user, setUser] = useState(() => {
     const cachedUser = localStorage.getItem('auralink_user');
     if (cachedUser) {
-      try { return JSON.parse(cachedUser).username; } catch (e) { return null; }
+      try { return JSON.parse(cachedUser).username; } catch { return null; }
     }
     return null;
   });
@@ -20,7 +20,7 @@ function App() {
   const [role, setRole] = useState(() => {
     const cachedUser = localStorage.getItem('auralink_user');
     if (cachedUser) {
-      try { return JSON.parse(cachedUser).role || 'user'; } catch (e) { return 'user'; }
+      try { return JSON.parse(cachedUser).role || 'user'; } catch { return 'user'; }
     }
     return 'user';
   });
@@ -39,15 +39,19 @@ function App() {
       if (hash.startsWith('#p/')) {
         const username = hash.replace('#p/', '');
         window.history.replaceState(null, '', `/@${username}`);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setCurrentPath(`/@${username}`);
       } else if (hash === '#auth') {
         window.history.replaceState(null, '', '/auth');
+         
         setCurrentPath('/auth');
       } else if (hash === '#dashboard') {
         window.history.replaceState(null, '', '/dashboard');
+         
         setCurrentPath('/dashboard');
       } else {
         window.history.replaceState(null, '', '/');
+         
         setCurrentPath('/');
       }
     }
@@ -127,7 +131,7 @@ function App() {
                 const userObj = JSON.parse(cachedUser);
                 userObj.username = newUsername;
                 localStorage.setItem('auralink_user', JSON.stringify(userObj));
-              } catch (e) { /* ignore */ }
+              } catch { /* ignore */ }
             }
             navigateTo('/dashboard');
           }}

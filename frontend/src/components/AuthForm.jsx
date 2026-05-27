@@ -1,5 +1,4 @@
-/* eslint-disable no-unused-vars, react-hooks/exhaustive-deps */
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link2 } from 'lucide-react';
 
 const API_BASE = '/api';
@@ -12,7 +11,7 @@ export default function AuthForm({ onAuthSuccess, onBackToHome }) {
   const [loading, setLoading] = useState(false);
   const googleButtonRef = useRef(null);
 
-  const handleGoogleCallback = async (response) => {
+  const handleGoogleCallback = useCallback(async (response) => {
     try {
       setLoading(true);
       setError('');
@@ -31,7 +30,7 @@ export default function AuthForm({ onAuthSuccess, onBackToHome }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [onAuthSuccess]);
 
   useEffect(() => {
     if (window.google) {
@@ -50,7 +49,7 @@ export default function AuthForm({ onAuthSuccess, onBackToHome }) {
         });
       }
     }
-  }, [isLogin]);
+  }, [isLogin, handleGoogleCallback]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

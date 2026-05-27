@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+
 import { 
   Link2, BarChart3, Palette, User, Save, 
   LogOut, RefreshCw, Eye, Sparkles, Shield, Copy, ExternalLink,
@@ -11,9 +11,7 @@ import LinksTab from './LinksTab';
 import DesignTab from './DesignTab';
 import AnalyticsTab from './AnalyticsTab';
 import AdminTab from './AdminTab';
-import { useToast } from '../ToastContext';
 
-const API_BASE = '/api';
 
 import { DashboardProvider, useDashboard } from './context/DashboardContext';
 
@@ -25,8 +23,11 @@ function DashboardContent({ onLogout }) {
     adminUsers, adminReports, adminSettings, adminPayments, activeApproval, savingSettings,
     newTitle, newUrl, expandedLinkId, mediaTarget, copiedUrl,
     setNewTitle, setNewUrl, setExpandedLinkId, handleAddLink, handleDeleteLink, handleToggleLink, handleEditLinkText, handleMoveLink, handleDuplicateLink,
-    handleSave, saving, handleUpdateTheme, handleUpdatePresentation,
-    analytics, handleAdminAction, handleResolveReport, handleSaveSettings, handleAdminQRUpload, submitApproval
+    handleSave, saving, handleUpdateTheme, handleUpdatePresentation, fetchData,
+    analytics, handleAdminAction, handleResolveReport, handleSaveSettings, handleAdminQRUpload, submitApproval,
+    handleUpgradeToPro, handleProUpgradeSuccess, handleCopyPublicUrl, handleAddTemplateLink,
+    tempUsername, setTempUsername, isUsernameAvailable, isUsernameChecked, setIsUsernameChecked, usernameSuggestions, changingUsername, handleCheckUsername, handleChangeUsernameSubmit,
+    handleUpdateLinkStyle, setMediaTarget, getSocialLink, setSocialLink, setAdminSettings, setAdminPayments, setAdminUsers, setAdminReports, setActiveApproval, approvalStartDate, setApprovalStartDate, approvalEndDate, setApprovalEndDate, approvalNotes, setApprovalNotes, enlargedReceiptUrl, setEnlargedReceiptUrl, handleMediaSelect, setProfile
   } = useDashboard();
 
 

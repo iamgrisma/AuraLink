@@ -1,10 +1,10 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useToast } from '../../ToastContext';
 
 const DashboardContext = createContext();
 const API_BASE = '/api';
 
-export function DashboardProvider({ children, username, onLogout, isAdmin, onUsernameChange }) {
+export function DashboardProvider({ children, username, isAdmin, onUsernameChange }) {
 
   const { addToast } = useToast();
   const [activeTab, setActiveTab] = useState('links'); // 'links', 'design', 'analytics', 'admin'
@@ -59,6 +59,7 @@ export function DashboardProvider({ children, username, onLogout, isAdmin, onUse
   const [showProModal, setShowProModal] = useState(false);
 
   useEffect(() => {
+
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setTempUsername(username);
     setIsUsernameChecked(false);
@@ -136,7 +137,7 @@ export function DashboardProvider({ children, username, onLogout, isAdmin, onUse
   };
 
   // Fetch profile & analytics
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -176,12 +177,13 @@ export function DashboardProvider({ children, username, onLogout, isAdmin, onUse
     } finally {
       setLoading(false);
     }
-  };
+  }, [username, isAdmin]);
 
   useEffect(() => {
+
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
-  }, [username]);
+  }, [fetchData]);
 
   // Save changes to backend
   const handleSave = async (updatedProfile = profile) => {
@@ -509,7 +511,7 @@ export function DashboardProvider({ children, username, onLogout, isAdmin, onUse
   };
 
   const contextValue = {
-    activeTab, setActiveTab, profile, setProfile, analytics, setAnalytics, loading, setLoading, saving, setSaving, proStatus, setProStatus, adminUsers, setAdminUsers, adminReports, setAdminReports, adminSettings, setAdminSettings, adminPayments, setAdminPayments, savingSettings, setSavingSettings, activeApproval, setActiveApproval, approvalStartDate, setApprovalStartDate, approvalEndDate, setApprovalEndDate, approvalNotes, setApprovalNotes, enlargedReceiptUrl, setEnlargedReceiptUrl, newTitle, setNewTitle, newUrl, setNewUrl, expandedLinkId, setExpandedLinkId, mediaTarget, setMediaTarget, mobileMenuOpen, setMobileMenuOpen, showMobilePreview, setShowMobilePreview, copiedUrl, setCopiedUrl, tempUsername, setTempUsername, isUsernameAvailable, setIsUsernameAvailable, isUsernameChecked, setIsUsernameChecked, usernameSuggestions, setUsernameSuggestions, changingUsername, setChangingUsername, showProModal, setShowProModal, handleCheckUsername, handleChangeUsernameSubmit, handleUpdateLinkStyle, handleMediaSelect, fetchData, handleSave, handleAdminAction, handleResolveReport, getSocialLink, setSocialLink, handleSaveSettings, handleAdminQRUpload, submitApproval, handleAddLink, handleDeleteLink, handleToggleLink, handleEditLinkText, handleMoveLink, handleDuplicateLink
+    activeTab, setActiveTab, profile, setProfile, analytics, setAnalytics, loading, setLoading, saving, setSaving, proStatus, setProStatus, adminUsers, setAdminUsers, adminReports, setAdminReports, adminSettings, setAdminSettings, adminPayments, setAdminPayments, savingSettings, setSavingSettings, activeApproval, setActiveApproval, approvalStartDate, setApprovalStartDate, approvalEndDate, setApprovalEndDate, approvalNotes, setApprovalNotes, enlargedReceiptUrl, setEnlargedReceiptUrl, newTitle, setNewTitle, newUrl, setNewUrl, expandedLinkId, setExpandedLinkId, mediaTarget, setMediaTarget, mobileMenuOpen, setMobileMenuOpen, showMobilePreview, setShowMobilePreview, copiedUrl, setCopiedUrl, tempUsername, setTempUsername, isUsernameAvailable, setIsUsernameAvailable, isUsernameChecked, setIsUsernameChecked, usernameSuggestions, setUsernameSuggestions, changingUsername, setChangingUsername, showProModal, setShowProModal, handleCheckUsername, handleChangeUsernameSubmit, handleUpdateLinkStyle, handleMediaSelect, fetchData, handleSave, handleAdminAction, handleResolveReport, getSocialLink, setSocialLink, handleSaveSettings, handleAdminQRUpload, submitApproval, handleAddLink, handleDeleteLink, handleToggleLink, handleEditLinkText, handleMoveLink, handleDuplicateLink, handleAddTemplateLink, handleCopyPublicUrl, handleUpdateTheme, handleUpdatePresentation, handleUpgradeToPro, handleProUpgradeSuccess, isAdmin, username
   };
 
   return (
@@ -519,6 +521,7 @@ export function DashboardProvider({ children, username, onLogout, isAdmin, onUse
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useDashboard() {
   return useContext(DashboardContext);
 }

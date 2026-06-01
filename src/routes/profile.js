@@ -124,16 +124,16 @@ profile.put('/:username', authMiddleware, ownershipCheck(), async (c) => {
         updated_at = CURRENT_TIMESTAMP
       WHERE username = ?
     `).bind(
-      name, bio, avatarUrl,
-      avatarDisplayMode, avatarSize, avatarFrameStyle,
-      theme?.backgroundType, theme?.backgroundValue, theme?.font, theme?.fontColor,
-      theme?.buttonStyle, theme?.buttonColor, theme?.buttonTextColor, theme?.buttonBorderColor,
-      seo?.title, seo?.description, seo?.allowIndexing === false ? 0 : 1,
-      googleAnalyticsId,
+      name ?? null, bio ?? null, avatarUrl ?? null,
+      avatarDisplayMode ?? null, avatarSize ?? null, avatarFrameStyle ?? null,
+      theme?.backgroundType ?? null, theme?.backgroundValue ?? null, theme?.font ?? null, theme?.fontColor ?? null,
+      theme?.buttonStyle ?? null, theme?.buttonColor ?? null, theme?.buttonTextColor ?? null, theme?.buttonBorderColor ?? null,
+      seo?.title ?? null, seo?.description ?? null, seo?.allowIndexing === false ? 0 : 1,
+      googleAnalyticsId ?? null,
       showWatermark === undefined ? null : (showWatermark ? 1 : 0),
       safeCss === undefined ? null : safeCss,
       socialLinksJson === undefined ? null : socialLinksJson,
-      socialDisplayStyle, socialIconStyle, socialIconShape, socialIconColor,
+      socialDisplayStyle ?? null, socialIconStyle ?? null, socialIconShape ?? null, socialIconColor ?? null,
       cleanUsername
     ).run();
 

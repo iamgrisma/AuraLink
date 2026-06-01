@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useToast } from '../../ToastContext';
+import ConfirmDialog from '../../ConfirmDialog';
 
-const DashboardContext = createContext();
+export const DashboardContext = createContext();
 const API_BASE = '/api';
 
 export function DashboardProvider({ children, username, isAdmin, onUsernameChange }) {
@@ -57,6 +58,7 @@ export function DashboardProvider({ children, username, isAdmin, onUsernameChang
 
   // Pro Modal state
   const [showProModal, setShowProModal] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: '', message: '', onConfirm: null });
 
   useEffect(() => {
 
@@ -82,33 +84,42 @@ export function DashboardProvider({ children, username, isAdmin, onUsernameChang
 
   const handleChangeUsernameSubmit = async () => {
     if (!isUsernameChecked || !isUsernameAvailable || tempUsername === username) return;
-    if (!confirm(`Are you sure you want to change your username from @${username} to @${tempUsername}? Your page URL will change.`)) return;
     
-    try {
-      setChangingUsername(true);
-      const res = await fetch(`${API_BASE}/profile/${username}/change-username`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ newUsername: tempUsername })
-      });
-      
-      if (res.ok) {
-        const data = await res.json();
-        addToast({ type: 'success', message: 'Your username has been updated successfully!' });
-        if (onUsernameChange) {
-          onUsernameChange(data.username);
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Change Username',
+      message: `Are you sure you want to change your username from @${username} to @${tempUsername}? Your page URL will change.`,
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+        try {
+          setChangingUsername(true);
+          const res = await fetch(`${API_BASE}/profile/${username}/change-username`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ newUsername: tempUsername })
+          });
+          
+          if (res.ok) {
+            const data = await res.json();
+            addToast({ type: 'success', message: 'Your username has been updated successfully!' });
+            if (onUsernameChange) {
+              onUsernameChange(data.username);
+            }
+          } else {
+            const errData = await res.json();
+            addToast({ type: 'error', message: errData.error || 'Failed to change username.' });
+          }
+        } catch (err) {
+          console.error(err);
+          addToast({ type: 'error', message: 'An error occurred during username update.' });
+        } finally {
+          setChangingUsername(false);
         }
-      } else {
-        const errData = await res.json();
-        addToast({ type: 'error', message: errData.error || 'Failed to change username.' });
       }
-    } catch (err) {
-      console.error(err);
-      addToast({ type: 'error', message: 'An error occurred during username update.' });
-    } finally {
-      setChangingUsername(false);
-    }
+    });
   };
+    
+
 
   const handleUpdateLinkStyle = (linkId, key, value) => {
     const updatedLinks = profile.links.map(l => {
@@ -517,6 +528,13 @@ export function DashboardProvider({ children, username, isAdmin, onUsernameChang
   return (
     <DashboardContext.Provider value={contextValue}>
       {children}
+      <ConfirmDialog 
+        isOpen={confirmDialog.isOpen} 
+        title={confirmDialog.title} 
+        message={confirmDialog.message} 
+        onConfirm={confirmDialog.onConfirm} 
+        onCancel={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))} 
+      />
     </DashboardContext.Provider>
   );
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Image, Upload, Trash2, X, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { useToast } from './ToastContext';
+import ConfirmDialog from './ConfirmDialog';
 
 const API_BASE = '/api';
 
@@ -10,6 +11,7 @@ export default function MediaManager({ username, isPro, onSelectImage, onClose }
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, fileKey: null });
 
   const fetchMedia = useCallback(async () => {
     try {
@@ -64,10 +66,15 @@ export default function MediaManager({ username, isPro, onSelectImage, onClose }
     }
   };
 
-  const handleDelete = async (e, fileKey) => {
+  const handleDelete = (e, fileKey) => {
     e.stopPropagation(); // Prevent selection
-    if (!confirm('Are you sure you want to permanently delete this image?')) return;
+    setConfirmDialog({ isOpen: true, fileKey });
+  };
 
+  const confirmDelete = async () => {
+    const { fileKey } = confirmDialog;
+    setConfirmDialog({ isOpen: false, fileKey: null });
+    
     // fileKey is typically "User/username/uuid.ext". We just need the filename.
     const filename = fileKey.split('/').pop();
 
@@ -78,11 +85,12 @@ export default function MediaManager({ username, isPro, onSelectImage, onClose }
       if (res.ok) {
         setMediaFiles(prev => prev.filter(f => f.key !== fileKey));
       } else {
-        addToast({ type: 'error', message: 'Failed to delete file' });
+        const errData = await res.json();
+        addToast({ type: 'error', message: errData.error || 'Delete failed' });
       }
     } catch (err) {
-      console.error(err);
-      addToast({ type: 'error', message: 'An error occurred while deleting.' });
+      console.error('Error deleting:', err);
+      addToast({ type: 'error', message: 'An error occurred during deletion.' });
     }
   };
 
@@ -225,6 +233,14 @@ export default function MediaManager({ username, isPro, onSelectImage, onClose }
           )}
         </div>
       </div>
+      <ConfirmDialog 
+        isOpen={confirmDialog.isOpen} 
+        title="Delete Image" 
+        message="Are you sure you want to permanently delete this image?" 
+        confirmText="Delete"
+        onConfirm={confirmDelete} 
+        onCancel={() => setConfirmDialog({ isOpen: false, fileKey: null })} 
+      />
     </div>
   );
 }

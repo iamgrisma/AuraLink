@@ -1,6 +1,6 @@
 
 import { 
-  Link2, BarChart3, Palette, User, Save, 
+  Link2, BarChart3, Palette, User, Save, QrCode,
   LogOut, RefreshCw, Eye, Sparkles, Shield, Copy, ExternalLink,
   Menu, X
 } from 'lucide-react';
@@ -11,6 +11,7 @@ import LinksTab from './LinksTab';
 import DesignTab from './DesignTab';
 import AnalyticsTab from './AnalyticsTab';
 import AdminTab from './AdminTab';
+import QRCodeGenerator from './QRCodeGenerator';
 
 
 import { DashboardProvider, useDashboard } from './context/DashboardContext';
@@ -117,6 +118,14 @@ function DashboardContent({ onLogout }) {
                 <BarChart3 size={18} />
                 <span>Analytics</span>
               </button>
+
+              <button 
+                onClick={() => { setActiveTab('share'); setMobileMenuOpen(false); }}
+                className={`sidebar-item ${activeTab === 'share' ? 'active' : ''}`}
+              >
+                <QrCode size={18} />
+                <span>Share & QR</span>
+              </button>
               
               {isAdmin && (
                 <button 
@@ -200,6 +209,8 @@ function DashboardContent({ onLogout }) {
               {activeTab === 'analytics' && <AnalyticsTab />}
 
               {activeTab === 'admin' && isAdmin && <AdminTab />}
+
+              {activeTab === 'share' && <QRCodeGenerator />}
 
             </div>
 

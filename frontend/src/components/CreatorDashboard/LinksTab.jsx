@@ -336,6 +336,7 @@ export default function LinksTab() {
             Allow Search Engines to Index Page
           </label>
         </div>
+        </div>
       </section>
 
       {/* Change Username Card */}

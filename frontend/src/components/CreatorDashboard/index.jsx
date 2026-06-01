@@ -21,7 +21,7 @@ function DashboardContent({ onLogout }) {
     activeTab, setActiveTab, profile, loading, proStatus, 
     showProModal, setShowProModal, mobileMenuOpen, setMobileMenuOpen,
     setShowMobilePreview, isAdmin, username, mediaTarget, copiedUrl,
-    handleSave, saving, fetchData, handleUpgradeToPro,
+    handleSave, saving, isDirty, fetchData, handleUpgradeToPro,
     handleProUpgradeSuccess, handleCopyPublicUrl,
     setMediaTarget, handleMediaSelect
   } = useDashboard();
@@ -231,21 +231,23 @@ function DashboardContent({ onLogout }) {
       )}
       
       {/* Save Action Bar (Sticky at bottom of screen for desktop) */}
-      <div className="dashboard-save-bar" style={{
-        position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 100,
-        backgroundColor: 'var(--bg-secondary)', padding: '1rem', borderRadius: '12px',
-        boxShadow: '0 10px 25px rgba(0,0,0,0.5)', border: '1px solid var(--border-light)',
-        display: 'flex', alignItems: 'center', gap: '1rem'
-      }}>
-        <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Unsaved changes?</span>
-        <button 
-          onClick={() => handleSave()} 
-          disabled={saving} 
-          className="btn btn-primary"
-        >
-          <Save size={16} /> {saving ? 'Saving...' : 'Save Page'}
-        </button>
-      </div>
+      {isDirty && (
+        <div className="dashboard-save-bar" style={{
+          position: 'fixed', bottom: '2rem', left: '50%', transform: 'translateX(-50%)', zIndex: 100,
+          backgroundColor: 'var(--bg-secondary)', padding: '1rem', borderRadius: '12px',
+          boxShadow: '0 10px 25px rgba(0,0,0,0.5)', border: '1px solid var(--border-light)',
+          display: 'flex', alignItems: 'center', gap: '1rem'
+        }}>
+          <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Unsaved changes?</span>
+          <button 
+            onClick={() => handleSave()} 
+            disabled={saving} 
+            className="btn btn-primary"
+          >
+            <Save size={16} /> {saving ? 'Saving...' : 'Save Page'}
+          </button>
+        </div>
+      )}
 
       <ProUpgradeModal 
         isOpen={showProModal} 

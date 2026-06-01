@@ -891,6 +891,66 @@ code {
 }
 
 .score-bar div {
+
+.public-url-pill button,
+.public-url-pill a,
+.icon-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid var(--border-light);
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+}
+
+.public-url-pill button:hover,
+.public-url-pill a:hover,
+.icon-action:hover {
+  color: var(--text-primary);
+  border-color: var(--border-focus);
+}
+
+.icon-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.launch-score {
+  min-width: 160px;
+  text-align: right;
+}
+
+.launch-score span {
+  display: block;
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
+.launch-score small {
+  color: var(--text-secondary);
+}
+
+.launch-score em {
+  display: block;
+  color: var(--success);
+  font-style: normal;
+  font-size: 0.78rem;
+  margin-top: 0.4rem;
+}
+
+.score-bar {
+  height: 6px;
+  border-radius: 99px;
+  background: var(--bg-primary);
+  margin-top: 0.7rem;
+  overflow: hidden;
+}
+
+.score-bar div {
   height: 100%;
   border-radius: inherit;
   background: var(--accent-secondary);
@@ -901,7 +961,6 @@ code {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(320px, 400px);
   gap: 2rem;
-  height: 100%;
   min-width: 0;
   min-height: 0;
 }
@@ -910,7 +969,6 @@ code {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  overflow-y: auto;
   padding-right: 0.5rem;
   min-width: 0;
 }

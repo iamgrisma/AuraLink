@@ -22,10 +22,13 @@ export function DashboardProvider({ children, username, isAdmin, onUsernameChang
     localStorage.setItem('auralink_active_tab', activeTab);
   }, [activeTab]);
   const [profile, setProfile] = useState(null);
+  const [originalProfileStr, setOriginalProfileStr] = useState('');
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [proStatus, setProStatus] = useState('none');
+  
+  const isDirty = profile && originalProfileStr && JSON.stringify(profile) !== originalProfileStr;
   
   // Admin states
   const [adminUsers, setAdminUsers] = useState([]);
@@ -172,6 +175,7 @@ export function DashboardProvider({ children, username, isAdmin, onUsernameChang
       if (profRes.ok) {
         const profData = await profRes.json();
         setProfile(profData);
+        setOriginalProfileStr(JSON.stringify(profData));
         if (profData.proStatus) {
           setProStatus(profData.proStatus);
         }
@@ -221,6 +225,7 @@ export function DashboardProvider({ children, username, isAdmin, onUsernameChang
       if (res.ok) {
         const data = await res.json();
         setProfile(data.profile);
+        setOriginalProfileStr(JSON.stringify(data.profile));
       }
     } catch (err) {
       console.error('Error saving profile:', err);
@@ -540,7 +545,7 @@ export function DashboardProvider({ children, username, isAdmin, onUsernameChang
   };
 
   const contextValue = {
-    activeTab, setActiveTab, profile, setProfile, analytics, setAnalytics, loading, setLoading, saving, setSaving, proStatus, setProStatus, adminUsers, setAdminUsers, adminReports, setAdminReports, adminSettings, setAdminSettings, adminPayments, setAdminPayments, savingSettings, setSavingSettings, activeApproval, setActiveApproval, approvalStartDate, setApprovalStartDate, approvalEndDate, setApprovalEndDate, approvalNotes, setApprovalNotes, enlargedReceiptUrl, setEnlargedReceiptUrl, newTitle, setNewTitle, newUrl, setNewUrl, expandedLinkId, setExpandedLinkId, mediaTarget, setMediaTarget, mobileMenuOpen, setMobileMenuOpen, showMobilePreview, setShowMobilePreview, copiedUrl, setCopiedUrl, tempUsername, setTempUsername, isUsernameAvailable, setIsUsernameAvailable, isUsernameChecked, setIsUsernameChecked, usernameSuggestions, setUsernameSuggestions, changingUsername, setChangingUsername, showProModal, setShowProModal, handleCheckUsername, handleChangeUsernameSubmit, handleUpdateLinkStyle, handleMediaSelect, fetchData, handleSave, handleAdminAction, handleResolveReport, getSocialLink, setSocialLink, handleSaveSettings, handleAdminQRUpload, submitApproval, handleAddLink, handleDeleteLink, handleToggleLink, handleEditLinkText, handleMoveLink, handleDuplicateLink, handleAddTemplateLink, handleCopyPublicUrl, handleUpdateTheme, handleUpdatePresentation, handleUpgradeToPro, handleProUpgradeSuccess, isAdmin, username
+    activeTab, setActiveTab, profile, setProfile, isDirty, analytics, setAnalytics, loading, setLoading, saving, setSaving, proStatus, setProStatus, adminUsers, setAdminUsers, adminReports, setAdminReports, adminSettings, setAdminSettings, adminPayments, setAdminPayments, savingSettings, setSavingSettings, activeApproval, setActiveApproval, approvalStartDate, setApprovalStartDate, approvalEndDate, setApprovalEndDate, approvalNotes, setApprovalNotes, enlargedReceiptUrl, setEnlargedReceiptUrl, newTitle, setNewTitle, newUrl, setNewUrl, expandedLinkId, setExpandedLinkId, mediaTarget, setMediaTarget, mobileMenuOpen, setMobileMenuOpen, showMobilePreview, setShowMobilePreview, copiedUrl, setCopiedUrl, tempUsername, setTempUsername, isUsernameAvailable, setIsUsernameAvailable, isUsernameChecked, setIsUsernameChecked, usernameSuggestions, setUsernameSuggestions, changingUsername, setChangingUsername, showProModal, setShowProModal, handleCheckUsername, handleChangeUsernameSubmit, handleUpdateLinkStyle, handleMediaSelect, fetchData, handleSave, handleAdminAction, handleResolveReport, getSocialLink, setSocialLink, handleSaveSettings, handleAdminQRUpload, submitApproval, handleAddLink, handleDeleteLink, handleToggleLink, handleEditLinkText, handleMoveLink, handleDuplicateLink, handleAddTemplateLink, handleCopyPublicUrl, handleUpdateTheme, handleUpdatePresentation, handleUpgradeToPro, handleProUpgradeSuccess, isAdmin, username
   };
 
   return (

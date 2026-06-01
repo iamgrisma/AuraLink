@@ -37,6 +37,7 @@ export function mapProfileToClient(profile, links) {
     socialDisplayStyle: profile.social_display_style || 'icons',
     socialIconStyle: profile.social_icon_style || 'brand',
     socialIconShape: profile.social_icon_shape || 'circle',
+    socialIconColor: profile.social_icon_color,
     googleAnalyticsId: profile.google_analytics_id,
     links: (links || []).map(l => ({
       id: l.id,
@@ -68,7 +69,7 @@ export const LINKS_SELECT_COLUMNS = 'id, title, url, is_active, button_style, bu
 /**
  * Default profile INSERT values for new users.
  */
-export const DEFAULT_PROFILE_SQL = `INSERT INTO profiles (username, name, bio, avatar_url, avatar_display_mode, avatar_size, avatar_frame_style, background_type, background_value, font, button_style, button_color, button_text_color, button_border_color, social_display_style, social_icon_style, social_icon_shape) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+export const DEFAULT_PROFILE_SQL = `INSERT INTO profiles (username, name, bio, avatar_url, avatar_display_mode, avatar_size, avatar_frame_style, background_type, background_value, font, button_style, button_color, button_text_color, button_border_color, social_display_style, social_icon_style, social_icon_shape, social_icon_color) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
 export function defaultProfileBindings(username, displayName) {
   return [
@@ -79,6 +80,65 @@ export function defaultProfileBindings(username, displayName) {
     'image', 'md', 'animated-border',
     'gradient', 'linear-gradient(135deg, #0f172a, #1e293b)',
     'Inter', 'solid', '#3b82f6', '#ffffff', 'transparent',
-    'icons', 'brand', 'circle'
+    'icons', 'brand', 'circle', '#ffffff'
+  ];
+}
+
+export function getBlueprintProfileBindings(username, displayName, blueprint) {
+  const name = displayName || username;
+  if (blueprint === 'ecommerce') {
+    return [
+      username, name, 'Shop my latest products and recommendations.', '',
+      'image', 'lg', 'animated-border',
+      'gradient', 'linear-gradient(135deg, #fdfbfb, #ebedee)',
+      'Outfit', 'solid', '#000000', '#ffffff', 'transparent',
+      'icons', 'brand', 'circle', '#000000'
+    ];
+  }
+  if (blueprint === 'musician') {
+    return [
+      username, name, 'Stream my latest tracks and upcoming tour dates.', '',
+      'image', 'lg', 'glow',
+      'gradient', 'linear-gradient(135deg, #0f2027, #203a43, #2c5364)',
+      'Inter', 'glassmorphic', 'rgba(255, 255, 255, 0.1)', '#ffffff', 'rgba(255, 255, 255, 0.2)',
+      'icons', 'brand', 'circle', '#ffffff'
+    ];
+  }
+  if (blueprint === 'freelancer') {
+    return [
+      username, name, 'Freelance Designer & Developer. Available for booking.', '',
+      'image', 'md', 'none',
+      'flat', '#ffffff',
+      'Inter', 'solid', '#1e293b', '#ffffff', 'transparent',
+      'icons', 'minimal', 'square', '#1e293b'
+    ];
+  }
+  return defaultProfileBindings(username, name);
+}
+
+export function getBlueprintLinks(username, blueprint) {
+  if (blueprint === 'ecommerce') {
+    return [
+      { title: '🛍️ Shop My Store', url: 'https://example.com/store' },
+      { title: '🔥 Featured Product', url: 'https://example.com/product' },
+      { title: '💌 Join Newsletter', url: 'https://example.com/newsletter' }
+    ];
+  }
+  if (blueprint === 'musician') {
+    return [
+      { title: '🎵 Listen on Spotify', url: 'https://spotify.com' },
+      { title: '▶️ Watch on YouTube', url: 'https://youtube.com' },
+      { title: '🎟️ Tour Tickets', url: 'https://example.com/tickets' }
+    ];
+  }
+  if (blueprint === 'freelancer') {
+    return [
+      { title: '💼 View Portfolio', url: 'https://example.com/portfolio' },
+      { title: '📅 Book a Consultation', url: 'https://calendly.com' },
+      { title: '✍️ Read My Blog', url: 'https://example.com/blog' }
+    ];
+  }
+  return [
+    { title: 'Start here', url: 'https://example.com' }
   ];
 }

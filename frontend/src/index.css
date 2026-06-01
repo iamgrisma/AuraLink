@@ -2675,3 +2675,121 @@ input:checked + .slider:before {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 }
+
+/* ========================================================= */
+/* PREMIUM AESTHETICS & MICRO-ANIMATIONS                     */
+/* ========================================================= */
+
+/* Skeleton Loader */
+@keyframes skeleton-loading {
+  0% {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+  50% {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+  100% {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+}
+
+.skeleton-loading {
+  animation: skeleton-loading 1.5s infinite ease-in-out;
+  border-radius: 8px;
+  width: 100%;
+}
+
+.skeleton-avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  margin: 0 auto 1.5rem;
+}
+
+.skeleton-text {
+  height: 24px;
+  margin-bottom: 0.5rem;
+  border-radius: 4px;
+}
+
+.skeleton-text.title {
+  width: 60%;
+  margin-left: auto;
+  margin-right: auto;
+  height: 32px;
+}
+
+.skeleton-text.bio {
+  width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.skeleton-link {
+  height: 56px;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+/* Avatar Frames */
+@keyframes spin-gradient {
+  0% { --angle: 0deg; }
+  100% { --angle: 360deg; }
+}
+
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.avatar-frame-animated-border {
+  position: relative;
+  border-radius: 50%;
+  padding: 4px;
+  background: conic-gradient(from var(--angle), var(--accent-primary), var(--accent-secondary), var(--accent-primary));
+  animation: spin-gradient 4s linear infinite;
+}
+
+.avatar-frame-animated-border img {
+  border-radius: 50%;
+  border: 3px solid var(--bg-primary);
+  display: block;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 15px rgba(57, 255, 20, 0.4), 0 0 30px rgba(57, 255, 20, 0.2); }
+  50% { box-shadow: 0 0 25px rgba(57, 255, 20, 0.8), 0 0 50px rgba(57, 255, 20, 0.4); }
+}
+
+.avatar-frame-glow {
+  border-radius: 50%;
+  padding: 3px;
+  background: #ffffff;
+  animation: pulse-glow 2s infinite ease-in-out;
+}
+
+.avatar-frame-glow img {
+  border-radius: 50%;
+  display: block;
+}
+
+/* Premium Link Hover Transitions */
+.public-link-btn {
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+}
+
+.public-link-btn:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Social Icon Hover */
+.public-social-icon {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.public-social-icon:hover {
+  transform: translateY(-3px) scale(1.1);
+  opacity: 0.8;
+}

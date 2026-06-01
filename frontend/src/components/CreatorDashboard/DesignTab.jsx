@@ -2,6 +2,42 @@ import { Palette, Sparkles } from 'lucide-react';
 
 const THEME_PRESETS = [
   {
+    name: 'Midnight Nebula',
+    type: 'gradient',
+    value: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e)',
+    btnStyle: 'glassmorphic',
+    btnColor: 'rgba(255, 255, 255, 0.15)',
+    textColor: '#ffffff',
+    premium: false
+  },
+  {
+    name: 'Cyberpunk Glow',
+    type: 'flat',
+    value: '#0d0221',
+    btnStyle: 'neon',
+    btnColor: '#ff007f',
+    textColor: '#00f0ff',
+    premium: false
+  },
+  {
+    name: 'Sunset Pastel',
+    type: 'gradient',
+    value: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%)',
+    btnStyle: 'solid',
+    btnColor: '#ffffff',
+    textColor: '#ff758c',
+    premium: false
+  },
+  {
+    name: 'Emerald Glass',
+    type: 'gradient',
+    value: 'linear-gradient(135deg, #051911, #0a3d24, #0f6137)',
+    btnStyle: 'glassmorphic',
+    btnColor: 'rgba(255, 255, 255, 0.15)',
+    textColor: '#e0ffe8',
+    premium: false
+  },
+  {
     name: 'Midnight Ink',
     type: 'gradient',
     value: 'linear-gradient(135deg, #0f172a, #1e293b)',

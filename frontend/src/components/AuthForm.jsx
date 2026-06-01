@@ -7,6 +7,7 @@ export default function AuthForm({ onAuthSuccess, onBackToHome }) {
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [blueprint, setBlueprint] = useState('default');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const googleButtonRef = useRef(null);
@@ -67,7 +68,11 @@ export default function AuthForm({ onAuthSuccess, onBackToHome }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ username: username.trim(), password })
+        body: JSON.stringify({ 
+          username: username.trim(), 
+          password,
+          blueprint: isLogin ? undefined : blueprint
+        })
       });
 
       const data = await res.json();
@@ -138,6 +143,25 @@ export default function AuthForm({ onAuthSuccess, onBackToHome }) {
               required
             />
           </div>
+
+          {!isLogin && (
+            <div className="form-group" style={{ marginBottom: '2rem' }}>
+              <label>Profile Blueprint (Optional)</label>
+              <select 
+                value={blueprint} 
+                onChange={(e) => setBlueprint(e.target.value)}
+                className="input-control"
+              >
+                <option value="default">Default Page</option>
+                <option value="ecommerce">E-Commerce & Storefront</option>
+                <option value="musician">Musician / Artist</option>
+                <option value="freelancer">Freelancer Portfolio</option>
+              </select>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
+                Start with a beautiful pre-configured template.
+              </span>
+            </div>
+          )}
 
           <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} disabled={loading}>
             {loading ? 'Processing...' : isLogin ? 'Sign In' : 'Create Free Page'}

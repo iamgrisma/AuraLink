@@ -108,14 +108,16 @@ CREATE TABLE IF NOT EXISTS profile_reports (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- User Media Table (Tracks R2 uploads per user)
-CREATE TABLE IF NOT EXISTS user_media (
+-- Media Files Table (Tracks R2 uploads per user)
+CREATE TABLE IF NOT EXISTS media_files (
     id TEXT PRIMARY KEY,
     username TEXT,
-    file_key TEXT NOT NULL,
+    filename TEXT NOT NULL,
+    url TEXT,
+    type TEXT,
     size INTEGER NOT NULL,
-    content_type TEXT,
-    uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    is_public INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- App Settings Table
@@ -145,7 +147,7 @@ CREATE INDEX IF NOT EXISTS idx_links_username ON links(username);
 CREATE INDEX IF NOT EXISTS idx_reports_status ON profile_reports(status);
 CREATE INDEX IF NOT EXISTS idx_analytics_views_username ON analytics_views(username);
 CREATE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id);
-CREATE INDEX IF NOT EXISTS idx_user_media_username ON user_media(username);
+CREATE INDEX IF NOT EXISTS idx_media_files_username ON media_files(username);
 CREATE INDEX IF NOT EXISTS idx_payment_logs_username ON payment_logs(username);
 CREATE INDEX IF NOT EXISTS idx_payment_logs_status ON payment_logs(status);
 

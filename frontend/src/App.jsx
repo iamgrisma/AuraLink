@@ -61,10 +61,11 @@ function App() {
         window.history.replaceState(null, '', '/auth');
          
         setCurrentPath('/auth');
-      } else if (hash === '#dashboard') {
-        window.history.replaceState(null, '', '/dashboard');
+      } else if (hash === '#dashboard' || hash === '#dashboard/admin') {
+        const path = hash.replace('#', '/');
+        window.history.replaceState(null, '', path);
          
-        setCurrentPath('/dashboard');
+        setCurrentPath(path);
       } else {
         window.history.replaceState(null, '', '/');
          
@@ -133,6 +134,7 @@ function App() {
       return <ProSalesPage onNavigate={navigateTo} />;
       
     case '/dashboard':
+    case '/dashboard/admin':
       if (loadingAuth) {
         return <div style={{display:'flex',justifyContent:'center',alignItems:'center',height:'100vh'}}>Loading...</div>;
       }

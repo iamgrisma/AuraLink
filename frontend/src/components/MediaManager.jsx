@@ -11,7 +11,7 @@ export default function MediaManager({ username, isPro, onSelectImage, onClose }
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
-  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, fileKey: null });
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, fileId: null });
 
   const fetchMedia = useCallback(async () => {
     try {
@@ -67,25 +67,22 @@ export default function MediaManager({ username, isPro, onSelectImage, onClose }
     }
   };
 
-  const handleDelete = (e, fileKey) => {
+  const handleDelete = (e, fileId) => {
     e.stopPropagation(); // Prevent selection
-    setConfirmDialog({ isOpen: true, fileKey });
+    setConfirmDialog({ isOpen: true, fileId });
   };
 
   const confirmDelete = async () => {
-    const { fileKey } = confirmDialog;
-    setConfirmDialog({ isOpen: false, fileKey: null });
+    const { fileId } = confirmDialog;
+    setConfirmDialog({ isOpen: false, fileId: null });
     
-    // fileKey is typically "User/username/uuid.ext". We just need the filename.
-    const filename = fileKey.split('/').pop();
-
     try {
-      const res = await fetch(`${API_BASE}/media/${username}/${filename}`, {
+      const res = await fetch(`${API_BASE}/media/${fileId}`, {
         method: 'DELETE',
         credentials: 'include'
       });
       if (res.ok) {
-        setMediaFiles(prev => prev.filter(f => f.key !== fileKey));
+        setMediaFiles(prev => prev.filter(f => f.id !== fileId));
       } else {
         const errData = await res.json();
         addToast({ type: 'error', message: errData.error || 'Delete failed' });
@@ -182,7 +179,7 @@ export default function MediaManager({ username, isPro, onSelectImage, onClose }
             <div className="media-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem' }}>
               {mediaFiles.map((file) => (
                 <div 
-                  key={file.key} 
+                  key={file.id} 
                   onClick={() => onSelectImage(file.url)}
                   style={{
                     position: 'relative',
@@ -214,7 +211,7 @@ export default function MediaManager({ username, isPro, onSelectImage, onClose }
                   >
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                       <button 
-                        onClick={(e) => handleDelete(e, file.key)}
+                        onClick={(e) => handleDelete(e, file.id)}
                         style={{
                           background: 'rgba(239, 68, 68, 0.9)', color: '#fff', border: 'none',
                           padding: '0.3rem', borderRadius: '4px', cursor: 'pointer'
@@ -241,7 +238,7 @@ export default function MediaManager({ username, isPro, onSelectImage, onClose }
         message="Are you sure you want to permanently delete this image?" 
         confirmText="Delete"
         onConfirm={confirmDelete} 
-        onCancel={() => setConfirmDialog({ isOpen: false, fileKey: null })} 
+        onCancel={() => setConfirmDialog({ isOpen: false, fileId: null })} 
       />
     </div>
   );

@@ -2,9 +2,10 @@
 import { useEffect, useState } from 'react';
 import { Link2, RefreshCw, Flag } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
-import { FaTwitter, FaInstagram, FaYoutube, FaTiktok, FaFacebook, FaGithub, FaLinkedin, FaSpotify, FaDiscord, FaTwitch } from 'react-icons/fa';
+import { FaTwitter, FaInstagram, FaYoutube, FaTiktok, FaFacebook, FaGithub, FaLinkedin, FaSpotify, FaDiscord, FaTwitch, FaPatreon, FaReddit, FaSnapchatGhost, FaPinterest, FaTelegram, FaWhatsapp } from 'react-icons/fa';
+import { FaThreads } from 'react-icons/fa6';
 
-const AVAILABLE_ICONS = { FaTwitter, FaInstagram, FaYoutube, FaTiktok, FaFacebook, FaGithub, FaLinkedin, FaSpotify, FaDiscord, FaTwitch };
+const AVAILABLE_ICONS = { FaTwitter, FaInstagram, FaYoutube, FaTiktok, FaFacebook, FaGithub, FaLinkedin, FaSpotify, FaDiscord, FaTwitch, FaPatreon, FaReddit, FaSnapchatGhost, FaPinterest, FaTelegram, FaWhatsapp, FaThreads };
 const API_BASE = '/api';
 const SOCIAL_COLOR_MAP = {
   instagram: '#e1306c',
@@ -13,7 +14,16 @@ const SOCIAL_COLOR_MAP = {
   tiktok: '#ffffff',
   facebook: '#1877f2',
   github: '#f5f5f5',
-  linkedin: '#0a66c2'
+  linkedin: '#0a66c2',
+  patreon: '#ff424d',
+  reddit: '#ff4500',
+  snapchat: '#fffc00',
+  pinterest: '#e60023',
+  telegram: '#0088cc',
+  whatsapp: '#25d366',
+  threads: '#ffffff',
+  discord: '#5865F2',
+  twitch: '#9146FF'
 };
 const AVATAR_SIZE_MAP = {
   sm: 64,
@@ -160,9 +170,17 @@ export default function PublicBioPage({ username }) {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: '1rem', background: '#070913', color: '#fff' }}>
-        <RefreshCw className="animate-spin" size={24} />
-        <span>Loading profile...</span>
+      <div className="public-profile-wrapper" style={{ background: '#090b10', padding: '2rem' }}>
+        <div className="public-profile-container" style={{ width: '100%', maxWidth: '680px', margin: '0 auto', textAlign: 'center' }}>
+          <div className="skeleton-loading skeleton-avatar" style={{ marginTop: '2rem' }}></div>
+          <div className="skeleton-loading skeleton-text title" style={{ marginBottom: '1.5rem' }}></div>
+          <div className="skeleton-loading skeleton-text bio"></div>
+          <div className="skeleton-loading skeleton-text bio" style={{ width: '60%', marginBottom: '3rem' }}></div>
+          
+          <div className="skeleton-loading skeleton-link"></div>
+          <div className="skeleton-loading skeleton-link"></div>
+          <div className="skeleton-loading skeleton-link"></div>
+        </div>
       </div>
     );
   }
@@ -194,6 +212,15 @@ export default function PublicBioPage({ username }) {
       case 'facebook': return `https://facebook.com/${cleanHandle}`;
       case 'github': return `https://github.com/${cleanHandle}`;
       case 'linkedin': return `https://linkedin.com/in/${cleanHandle}`;
+      case 'patreon': return `https://patreon.com/${cleanHandle}`;
+      case 'reddit': return `https://reddit.com/user/${cleanHandle}`;
+      case 'snapchat': return `https://snapchat.com/add/${cleanHandle}`;
+      case 'pinterest': return `https://pinterest.com/${cleanHandle}`;
+      case 'telegram': return `https://t.me/${cleanHandle}`;
+      case 'whatsapp': return `https://wa.me/${cleanHandle}`;
+      case 'threads': return `https://threads.net/@${cleanHandle}`;
+      case 'discord': return `https://discord.com/users/${cleanHandle}`;
+      case 'twitch': return `https://twitch.tv/${cleanHandle}`;
       default: return cleanHandle;
     }
   };
@@ -207,6 +234,15 @@ export default function PublicBioPage({ username }) {
       case 'facebook': return FaFacebook;
       case 'github': return FaGithub;
       case 'linkedin': return FaLinkedin;
+      case 'patreon': return FaPatreon;
+      case 'reddit': return FaReddit;
+      case 'snapchat': return FaSnapchatGhost;
+      case 'pinterest': return FaPinterest;
+      case 'telegram': return FaTelegram;
+      case 'whatsapp': return FaWhatsapp;
+      case 'threads': return FaThreads;
+      case 'discord': return FaDiscord;
+      case 'twitch': return FaTwitch;
       default: return null;
     }
   };
@@ -223,8 +259,8 @@ export default function PublicBioPage({ username }) {
 
   const renderAvatar = () => (
     <div
-      className={`avatar-shell avatar-${avatarSize} avatar-${avatarFrameStyle}`}
-      style={{ width: avatarDimension, height: avatarDimension }}
+      className={`avatar-shell avatar-${avatarSize} avatar-frame-${avatarFrameStyle}`}
+      style={{ width: avatarDimension, height: avatarDimension, margin: '0 auto 1.5rem' }}
     >
       {avatarDisplayMode === 'initial' || !profile.avatarUrl ? (
         <div className="avatar-monogram" style={{ width: '100%', height: '100%' }}>
@@ -253,7 +289,7 @@ export default function PublicBioPage({ username }) {
         href={href}
         target="_blank"
         rel="noopener noreferrer nofollow"
-        className={itemClass}
+        className={`public-social-icon ${itemClass}`}
         style={{
           color: toneColor,
           borderColor: socialIconStyle === 'outline' ? toneColor : undefined,
@@ -380,7 +416,7 @@ export default function PublicBioPage({ username }) {
                   target="_blank" 
                   rel="noopener noreferrer nofollow"
                   onClick={() => handleLinkClick(link.id)}
-                  className={buttonClass}
+                  className={`public-link-btn ${buttonClass}`}
                   style={{...computedStyles, position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1rem'}}
                 >
                   <div className="bio-link-content" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

@@ -64,6 +64,12 @@ export function sanitizeCss(css) {
   clean = clean.replace(/behavior\s*:/gi, '');
   // Remove -moz-binding (Firefox XSS vector)
   clean = clean.replace(/-moz-binding\s*:/gi, '');
+  // Remove vbscript: URLs
+  clean = clean.replace(/vbscript\s*:/gi, '');
+  // Prevent breaking out of <style> blocks
+  clean = clean.replace(/<\/?style.*?>/gi, '');
+  // Prevent general HTML tag injection
+  clean = clean.replace(/<.*?>/g, '');
 
   return clean;
 }

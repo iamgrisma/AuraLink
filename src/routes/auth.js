@@ -4,14 +4,16 @@ import { sign } from 'hono/jwt';
 import { setCookie, deleteCookie } from 'hono/cookie';
 import { hashPassword, verifyPassword, isLegacyHash } from '../utils/password.js';
 import { validateUsername } from '../utils/validators.js';
-import { DEFAULT_PROFILE_SQL, defaultProfileBindings } from '../utils/mapProfile.js';
+import { DEFAULT_PROFILE_SQL, defaultProfileBindings, getBlueprintProfileBindings, getBlueprintLinks } from '../utils/mapProfile.js';
 import { authMiddleware } from '../middleware/auth.js';
+import { rateLimiter } from '../middleware/rateLimit.js';
 
 const auth = new Hono();
+const authLimiter = rateLimiter({ limit: 10, windowMs: 60 * 1000, message: 'Too many requests. Please try again later.' });
 
 // --- Register ---
-auth.post('/register', async (c) => {
-  const { username, password } = await c.req.json();
+auth.post('/register', authLimiter, async (c) => {
+  const { username, password, blueprint } = await c.req.json();
   if (!username || !password) {
     return c.json({ error: 'Username and password are required' }, 400);
   }
@@ -42,9 +44,11 @@ auth.post('/register', async (c) => {
       c.env.DB.prepare("INSERT INTO users (id, username, password_hash, role, pro_status, account_status) VALUES (?, ?, ?, 'user', 'none', 'active')")
         .bind(userId, cleanUsername, hashedPassword),
       c.env.DB.prepare(DEFAULT_PROFILE_SQL)
-        .bind(...defaultProfileBindings(cleanUsername, username)),
-      c.env.DB.prepare('INSERT INTO links (id, username, title, url, is_active, display_order) VALUES (?, ?, ?, ?, 1, 0)')
-        .bind(crypto.randomUUID(), cleanUsername, 'Start here', 'https://example.com')
+        .bind(...getBlueprintProfileBindings(cleanUsername, username, blueprint)),
+      ...getBlueprintLinks(cleanUsername, blueprint).map((l, i) =>
+        c.env.DB.prepare('INSERT INTO links (id, username, title, url, is_active, display_order) VALUES (?, ?, ?, ?, 1, ?)')
+          .bind(crypto.randomUUID(), cleanUsername, l.title, l.url, i)
+      )
     ]);
 
     const secret = c.env.JWT_SECRET || 'fallback_secret_do_not_use_in_prod';
@@ -67,7 +71,7 @@ auth.post('/register', async (c) => {
 });
 
 // --- Login ---
-auth.post('/login', async (c) => {
+auth.post('/login', authLimiter, async (c) => {
   const { username, password } = await c.req.json();
   if (!username || !password) {
     return c.json({ error: 'Username and password are required' }, 400);

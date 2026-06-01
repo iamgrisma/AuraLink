@@ -83,7 +83,7 @@ profile.put('/:username', authMiddleware, ownershipCheck(), async (c) => {
   const body = await c.req.json();
   const { name, bio, avatarUrl, avatarDisplayMode, avatarSize, avatarFrameStyle,
     theme, seo, links, googleAnalyticsId, showWatermark, customCss,
-    socialLinksJson, socialDisplayStyle, socialIconStyle, socialIconShape } = body;
+    socialLinksJson, socialDisplayStyle, socialIconStyle, socialIconShape, socialIconColor } = body;
 
   // Validate inputs
   if (googleAnalyticsId && !isValidGAId(googleAnalyticsId)) {
@@ -120,7 +120,7 @@ profile.put('/:username', authMiddleware, ownershipCheck(), async (c) => {
         show_watermark = COALESCE(?, show_watermark), custom_css = COALESCE(?, custom_css),
         social_links_json = COALESCE(?, social_links_json),
         social_display_style = COALESCE(?, social_display_style), social_icon_style = COALESCE(?, social_icon_style),
-        social_icon_shape = COALESCE(?, social_icon_shape),
+        social_icon_shape = COALESCE(?, social_icon_shape), social_icon_color = COALESCE(?, social_icon_color),
         updated_at = CURRENT_TIMESTAMP
       WHERE username = ?
     `).bind(
@@ -133,7 +133,7 @@ profile.put('/:username', authMiddleware, ownershipCheck(), async (c) => {
       showWatermark === undefined ? null : (showWatermark ? 1 : 0),
       safeCss === undefined ? null : safeCss,
       socialLinksJson === undefined ? null : socialLinksJson,
-      socialDisplayStyle, socialIconStyle, socialIconShape,
+      socialDisplayStyle, socialIconStyle, socialIconShape, socialIconColor,
       cleanUsername
     ).run();
 
@@ -252,7 +252,9 @@ profile.post('/:username/change-username', authMiddleware, ownershipCheck(), asy
       c.env.DB.prepare('UPDATE links SET username = ? WHERE username = ?').bind(cleanNewUsername, currentUsername),
       c.env.DB.prepare('UPDATE analytics_views SET username = ? WHERE username = ?').bind(cleanNewUsername, currentUsername),
       c.env.DB.prepare('UPDATE analytics_clicks SET username = ? WHERE username = ?').bind(cleanNewUsername, currentUsername),
-      c.env.DB.prepare('UPDATE profile_reports SET reported_username = ? WHERE reported_username = ?').bind(cleanNewUsername, currentUsername)
+      c.env.DB.prepare('UPDATE profile_reports SET reported_username = ? WHERE reported_username = ?').bind(cleanNewUsername, currentUsername),
+      c.env.DB.prepare('UPDATE media_files SET username = ? WHERE username = ?').bind(cleanNewUsername, currentUsername),
+      c.env.DB.prepare('UPDATE payment_logs SET username = ? WHERE username = ?').bind(cleanNewUsername, currentUsername)
     ]);
 
     return c.json({ message: 'Username updated successfully', username: cleanNewUsername });

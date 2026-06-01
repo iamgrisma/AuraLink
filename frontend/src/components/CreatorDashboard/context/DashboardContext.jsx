@@ -8,7 +8,19 @@ const API_BASE = '/api';
 export function DashboardProvider({ children, username, isAdmin, onUsernameChange }) {
 
   const { addToast } = useToast();
-  const [activeTab, setActiveTab] = useState('links'); // 'links', 'design', 'analytics', 'admin'
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window !== 'undefined' && window.location.pathname.endsWith('/admin')) return 'admin';
+    return localStorage.getItem('auralink_active_tab') || 'links';
+  });
+
+  useEffect(() => {
+    if (activeTab === 'admin') {
+      window.history.replaceState(null, '', '/dashboard/admin');
+    } else if (window.location.pathname.endsWith('/admin')) {
+      window.history.replaceState(null, '', '/dashboard');
+    }
+    localStorage.setItem('auralink_active_tab', activeTab);
+  }, [activeTab]);
   const [profile, setProfile] = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);

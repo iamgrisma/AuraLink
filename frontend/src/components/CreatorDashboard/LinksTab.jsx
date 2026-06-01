@@ -1,7 +1,8 @@
 import { User, Plus, Link2, Trash2, Settings, ExternalLink, Image as ImageIcon, ArrowUp, ArrowDown, Copy, CheckCircle2 } from 'lucide-react';
-import { FaTwitter, FaInstagram, FaYoutube, FaTiktok, FaFacebook, FaGithub, FaLinkedin, FaSpotify, FaDiscord, FaTwitch } from 'react-icons/fa';
+import { FaTwitter, FaInstagram, FaYoutube, FaTiktok, FaFacebook, FaGithub, FaLinkedin, FaSpotify, FaDiscord, FaTwitch, FaPatreon, FaReddit, FaSnapchatGhost, FaPinterest, FaTelegram, FaWhatsapp } from 'react-icons/fa';
+import { FaThreads } from 'react-icons/fa6';
 
-const AVAILABLE_ICONS = { FaTwitter, FaInstagram, FaYoutube, FaTiktok, FaFacebook, FaGithub, FaLinkedin, FaSpotify, FaDiscord, FaTwitch };
+const AVAILABLE_ICONS = { FaTwitter, FaInstagram, FaYoutube, FaTiktok, FaFacebook, FaGithub, FaLinkedin, FaSpotify, FaDiscord, FaTwitch, FaPatreon, FaReddit, FaSnapchatGhost, FaPinterest, FaTelegram, FaWhatsapp, FaThreads };
 const LINK_TEMPLATES = [
   { title: 'Book a consultation', url: 'https://calendly.com/your-name', iconName: 'FaLinkedin', buttonStyle: 'solid' },
   { title: 'Shop my recommended tools', url: 'https://your-store.com', iconName: 'FaSpotify', buttonStyle: 'soft' },
@@ -62,7 +63,7 @@ export default function LinksTab() {
     { label: 'Upload a clear profile photo', done: Boolean(profile.avatarUrl) },
     { label: 'Write a specific bio with your offer', done: Boolean(profile.bio && profile.bio.trim().length > 20) },
     { label: 'Publish at least 3 active links', done: activeLinks >= 3 },
-    { label: 'Add social profile icons', done: ['instagram', 'youtube', 'twitter', 'tiktok', 'facebook', 'github', 'linkedin'].some(platform => getSocialLink(platform)) },
+    { label: 'Add social profile icons', done: ['instagram', 'youtube', 'twitter', 'tiktok', 'facebook', 'github', 'linkedin', 'threads', 'patreon', 'discord', 'twitch', 'reddit', 'snapchat', 'pinterest', 'telegram', 'whatsapp'].some(platform => getSocialLink(platform)) },
     { label: 'Set SEO title and description', done: Boolean(profile.seo?.title && profile.seo?.description) }
   ];
 
@@ -195,7 +196,6 @@ export default function LinksTab() {
             type="text"
             value={profile.googleAnalyticsId || ''}
             onChange={(e) => setProfile({ ...profile, googleAnalyticsId: e.target.value })}
-            onBlur={() => handleSave()}
             className="input-control"
             placeholder="e.g. G-XXXXXXXXXX"
             maxLength={20}
@@ -218,20 +218,86 @@ export default function LinksTab() {
         <div className="form-group" style={{ marginBottom: '1.5rem', borderTop: '1px solid var(--border-light)', paddingTop: '1.5rem' }}>
           <label style={{ fontWeight: '600', display: 'block', marginBottom: '0.75rem' }}>Social Profile Handles</label>
           <div className="social-handles-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.75rem' }}>
-            {['instagram', 'youtube', 'twitter', 'tiktok', 'facebook', 'github', 'linkedin'].map(platform => (
+            {['instagram', 'youtube', 'twitter', 'tiktok', 'facebook', 'github', 'linkedin', 'threads', 'patreon', 'discord', 'twitch', 'reddit', 'snapchat', 'pinterest', 'telegram', 'whatsapp'].map(platform => (
               <div key={platform} style={{ display: 'flex', flexDirection: 'column' }}>
                 <label style={{ fontSize: '0.75rem', textTransform: 'capitalize', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>{platform}</label>
                 <input
                   type="text"
                   value={getSocialLink(platform)}
                   onChange={(e) => setSocialLink(platform, e.target.value)}
-                  onBlur={() => handleSave()}
                   className="input-control"
                   style={{ fontSize: '0.8rem', padding: '0.4rem' }}
                   placeholder={`${platform} username`}
                 />
               </div>
             ))}
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginTop: '1.25rem' }}>
+            <div className="form-group">
+              <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', display: 'block' }}>Social Layout</label>
+              <select
+                value={profile.socialDisplayStyle || 'icons'}
+                onChange={(e) => handleUpdatePresentation('socialDisplayStyle', e.target.value)}
+                className="input-control"
+                style={{ fontSize: '0.8rem', padding: '0.4rem' }}
+              >
+                <option value="icons">Icon grid (No Text)</option>
+                <option value="stack">Stacked rows (Icon + Text)</option>
+                <option value="pills">Pills (Horizontal)</option>
+                <option value="text">Text Only</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', display: 'block' }}>Icon Tone</label>
+              <select
+                value={profile.socialIconStyle || 'brand'}
+                onChange={(e) => handleUpdatePresentation('socialIconStyle', e.target.value)}
+                className="input-control"
+                style={{ fontSize: '0.8rem', padding: '0.4rem' }}
+              >
+                <option value="brand">Brand Colors</option>
+                <option value="mono">Monochrome</option>
+                <option value="outline">Outline</option>
+                <option value="glass">Glassmorphism</option>
+                <option value="custom">Custom Color</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', display: 'block' }}>Icon Shape</label>
+              <select
+                value={profile.socialIconShape || 'circle'}
+                onChange={(e) => handleUpdatePresentation('socialIconShape', e.target.value)}
+                className="input-control"
+                style={{ fontSize: '0.8rem', padding: '0.4rem' }}
+              >
+                <option value="circle">Circle</option>
+                <option value="square">Square</option>
+                <option value="rounded">Rounded Corners</option>
+                <option value="none">None / Native</option>
+              </select>
+            </div>
+            {profile.socialIconStyle === 'custom' && (
+              <div className="form-group">
+                <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', display: 'block' }}>Custom Color</label>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <input
+                    type="color"
+                    value={profile.socialIconColor || '#ffffff'}
+                    onChange={(e) => handleUpdatePresentation('socialIconColor', e.target.value)}
+                    className="color-picker"
+                    style={{ width: '40px', height: '36px', padding: 0, border: 'none', borderRadius: '8px', cursor: 'pointer' }}
+                  />
+                  <input
+                    type="text"
+                    value={profile.socialIconColor || '#ffffff'}
+                    onChange={(e) => handleUpdatePresentation('socialIconColor', e.target.value)}
+                    className="input-control"
+                    style={{ flex: 1, fontSize: '0.8rem', padding: '0.4rem', fontFamily: 'monospace' }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
           
           <div className="compact-control-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.75rem', marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border-light)' }}>
@@ -242,7 +308,6 @@ export default function LinksTab() {
               const updated = { ...profile, seo: { ...profile.seo, title: e.target.value } };
               setProfile(updated);
             }}
-            onBlur={() => handleSave()}
             className="input-control"
             placeholder="SEO Meta Title"
             style={{ marginBottom: '0.5rem' }}
@@ -253,7 +318,6 @@ export default function LinksTab() {
               const updated = { ...profile, seo: { ...profile.seo, description: e.target.value } };
               setProfile(updated);
             }}
-            onBlur={() => handleSave()}
             className="input-control"
             placeholder="SEO Meta Description"
             rows={2}

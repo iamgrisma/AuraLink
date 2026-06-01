@@ -5,11 +5,11 @@ import { validateUploadedFile } from '../utils/validators.js';
 
 const media = new Hono();
 
-// We do NOT protect the GET /media/:username/:filename route so images load publicly.
-media.get('/:username/:filename', async (c) => {
-  const username = c.req.param('username').trim().toLowerCase();
+// We do NOT protect the GET /media/:userId/:filename route so images load publicly.
+media.get('/:userId/:filename', async (c) => {
+  const userId = c.req.param('userId');
   const filename = c.req.param('filename');
-  const path = `${username}/${filename}`;
+  const path = `${userId}/${filename}`;
   
   try {
     const object = await c.env.BUCKET.get(path);
@@ -32,7 +32,7 @@ media.use('/*', authMiddleware);
 // --- Upload File ---
 media.post('/', async (c) => {
   const user = c.get('user');
-  const { username } = user;
+  const { username, id: userId } = user;
   
   try {
     const formData = await c.req.parseBody();
@@ -59,7 +59,7 @@ media.post('/', async (c) => {
     const uniqueId = crypto.randomUUID();
     const fileExtension = file.name.split('.').pop().toLowerCase();
     const fileName = `${uniqueId}.${fileExtension}`;
-    const objectKey = `${username}/${fileName}`;
+    const objectKey = `${userId}/${fileName}`;
 
     await c.env.BUCKET.put(objectKey, await file.arrayBuffer(), {
       httpMetadata: { contentType: file.type }
@@ -90,14 +90,23 @@ media.get('/list/:username', ownershipCheck(), async (c) => {
 });
 
 // --- Delete File ---
-media.delete('/:username/:filename', ownershipCheck(), async (c) => {
-  const username = c.req.param('username').trim().toLowerCase();
-  const filename = c.req.param('filename');
+media.delete('/:id', authMiddleware, async (c) => {
+  const id = c.req.param('id');
+  const user = c.get('user');
   
   try {
-    await c.env.BUCKET.delete(`${username}/${filename}`);
-    await c.env.DB.prepare('DELETE FROM media_files WHERE username = ? AND filename = ?')
-      .bind(username, filename).run();
+    const fileRecord = await c.env.DB.prepare('SELECT username, url FROM media_files WHERE id = ?').bind(id).first();
+    if (!fileRecord) return c.json({ error: 'File not found' }, 404);
+    
+    if (fileRecord.username !== user.username && user.role !== 'admin') {
+      return c.json({ error: 'Forbidden: you can only delete your own files' }, 403);
+    }
+    
+    // Extract R2 path from url. URL is /api/media/username/filename
+    const r2Path = fileRecord.url.replace('/api/media/', '');
+    
+    await c.env.BUCKET.delete(r2Path);
+    await c.env.DB.prepare('DELETE FROM media_files WHERE id = ?').bind(id).run();
     return c.json({ message: 'File deleted' });
   } catch (err) {
     console.error('Delete error:', err);

@@ -226,9 +226,15 @@ export function DashboardProvider({ children, username, isAdmin, onUsernameChang
         const data = await res.json();
         setProfile(data.profile);
         setOriginalProfileStr(JSON.stringify(data.profile));
+        addToast({ type: 'success', message: 'Changes saved!' });
+      } else {
+        const errData = await res.json();
+        addToast({ type: 'error', message: errData.error || 'Failed to save changes.' });
+        console.error('Save failed:', errData);
       }
     } catch (err) {
       console.error('Error saving profile:', err);
+      addToast({ type: 'error', message: 'Network error occurred while saving.' });
     } finally {
       setSaving(false);
     }
@@ -342,7 +348,7 @@ export function DashboardProvider({ children, username, isAdmin, onUsernameChang
       const formData = new FormData();
       formData.append('file', file);
       formData.append('username', 'admin');
-      const res = await fetch(`${API_BASE}/upload`, {
+      const res = await fetch(`${API_BASE}/media`, {
         method: 'POST',
         body: formData,
         credentials: 'include'
@@ -356,9 +362,10 @@ export function DashboardProvider({ children, username, isAdmin, onUsernameChang
       }
     } catch (err) {
       console.error(err);
-      addToast({ type: 'error', message: 'QR upload error occurred.' });
+      addToast({ type: 'error', message: 'Network error during upload' });
     }
   };
+
 
   const submitApproval = async () => {
     if (!activeApproval) return;

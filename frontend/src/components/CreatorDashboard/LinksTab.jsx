@@ -714,6 +714,50 @@ export default function LinksTab() {
           </div>
         )}
       </section>
+
+      {/* Danger Zone */}
+      <section className="editor-card" style={{ border: '1px solid var(--danger)', marginTop: '2rem' }}>
+        <h2 className="card-title" style={{ color: 'var(--danger)' }}>Danger Zone</h2>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+          Reset your profile data. This will clear your avatar, bio, links, and custom styles. Your name, username, and social profile handles will be kept.
+        </p>
+        <button
+          type="button"
+          className="btn btn-primary"
+          style={{ background: 'var(--danger)', color: '#fff', border: 'none' }}
+          onClick={() => {
+            if (window.confirm("Are you sure you want to reset everything? This cannot be undone.")) {
+              const resetProfile = {
+                ...profile,
+                bio: '',
+                avatarUrl: '',
+                links: [],
+                customCss: '',
+                googleAnalyticsId: '',
+                seo: {},
+                showWatermark: true,
+                avatarDisplayMode: 'image',
+                avatarSize: 'md',
+                avatarFrameStyle: 'animated-border',
+                theme: {
+                  backgroundType: 'gradient',
+                  backgroundValue: 'linear-gradient(135deg, #0f172a, #1e293b)',
+                  font: 'Inter',
+                  fontColor: '#ffffff',
+                  buttonStyle: 'solid',
+                  buttonColor: '#3b82f6',
+                  buttonTextColor: '#ffffff',
+                  buttonBorderColor: 'transparent'
+                }
+              };
+              setProfile(resetProfile);
+              handleSave(resetProfile);
+            }
+          }}
+        >
+          Reset Everything
+        </button>
+      </section>
     </>
   );
 }

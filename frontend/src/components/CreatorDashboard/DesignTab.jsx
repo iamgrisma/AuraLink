@@ -8,6 +8,7 @@ const THEME_PRESETS = [
     btnStyle: 'glassmorphic',
     btnColor: 'rgba(255, 255, 255, 0.15)',
     textColor: '#ffffff',
+    fontColor: '#ffffff',
     premium: false
   },
   {
@@ -17,6 +18,7 @@ const THEME_PRESETS = [
     btnStyle: 'neon',
     btnColor: '#ff007f',
     textColor: '#00f0ff',
+    fontColor: '#00f0ff',
     premium: false
   },
   {
@@ -26,6 +28,7 @@ const THEME_PRESETS = [
     btnStyle: 'solid',
     btnColor: '#ffffff',
     textColor: '#ff758c',
+    fontColor: '#ffffff',
     premium: false
   },
   {
@@ -35,6 +38,7 @@ const THEME_PRESETS = [
     btnStyle: 'glassmorphic',
     btnColor: 'rgba(255, 255, 255, 0.15)',
     textColor: '#e0ffe8',
+    fontColor: '#e0ffe8',
     premium: false
   },
   {
@@ -44,6 +48,7 @@ const THEME_PRESETS = [
     btnStyle: 'solid',
     btnColor: '#3b82f6',
     textColor: '#ffffff',
+    fontColor: '#ffffff',
     premium: false
   },
   {
@@ -53,6 +58,7 @@ const THEME_PRESETS = [
     btnStyle: 'glassmorphic',
     btnColor: 'rgba(255, 255, 255, 0.1)',
     textColor: '#ffffff',
+    fontColor: '#ffffff',
     premium: true
   },
   {
@@ -62,6 +68,7 @@ const THEME_PRESETS = [
     btnStyle: 'neon',
     btnColor: '#39ff14',
     textColor: '#39ff14',
+    fontColor: '#ffffff',
     premium: true
   },
   {
@@ -71,6 +78,7 @@ const THEME_PRESETS = [
     btnStyle: 'pastel',
     btnColor: '#ec4899',
     textColor: '#4c0519',
+    fontColor: '#4c0519',
     premium: true
   },
   {
@@ -80,6 +88,7 @@ const THEME_PRESETS = [
     btnStyle: 'outline',
     btnColor: '#34d399',
     textColor: '#34d399',
+    fontColor: '#ecfdf5',
     premium: false
   },
   {
@@ -89,6 +98,7 @@ const THEME_PRESETS = [
     btnStyle: 'pill',
     btnColor: '#38bdf8',
     textColor: '#ffffff',
+    fontColor: '#e0f2fe',
     premium: false
   },
   {
@@ -98,6 +108,7 @@ const THEME_PRESETS = [
     btnStyle: 'solid',
     btnColor: '#f59e0b',
     textColor: '#ffffff',
+    fontColor: '#ffedd5',
     premium: false
   },
   {
@@ -107,6 +118,7 @@ const THEME_PRESETS = [
     btnStyle: 'soft',
     btnColor: 'rgba(79, 70, 229, 0.1)',
     textColor: '#4f46e5',
+    fontColor: '#312e81',
     premium: false
   },
   {
@@ -116,6 +128,7 @@ const THEME_PRESETS = [
     btnStyle: 'outline',
     btnColor: '#fbbf24',
     textColor: '#fbbf24',
+    fontColor: '#fbbf24',
     premium: true
   },
   {
@@ -125,6 +138,7 @@ const THEME_PRESETS = [
     btnStyle: 'soft',
     btnColor: 'rgba(22, 101, 52, 0.08)',
     textColor: '#166534',
+    fontColor: '#14532d',
     premium: false
   },
   {
@@ -134,6 +148,7 @@ const THEME_PRESETS = [
     btnStyle: 'solid',
     btnColor: '#ea580c',
     textColor: '#ffffff',
+    fontColor: '#9a3412',
     premium: true
   },
   {
@@ -143,6 +158,7 @@ const THEME_PRESETS = [
     btnStyle: 'solid',
     btnColor: '#0f172a',
     textColor: '#ffffff',
+    fontColor: '#0f172a',
     premium: false
   },
   {
@@ -152,6 +168,7 @@ const THEME_PRESETS = [
     btnStyle: 'glassmorphic',
     btnColor: 'rgba(255, 255, 255, 0.15)',
     textColor: '#ffffff',
+    fontColor: '#ffffff',
     premium: true
   },
   {
@@ -161,6 +178,7 @@ const THEME_PRESETS = [
     btnStyle: 'shadow',
     btnColor: '#319795',
     textColor: '#ffffff',
+    fontColor: '#234e52',
     premium: true
   },
   {
@@ -170,6 +188,7 @@ const THEME_PRESETS = [
     btnStyle: 'neon',
     btnColor: '#a78bfa',
     textColor: '#ffffff',
+    fontColor: '#ffffff',
     premium: true
   },
   {
@@ -179,6 +198,7 @@ const THEME_PRESETS = [
     btnStyle: 'dashed',
     btnColor: '#ea580c',
     textColor: '#ffedd5',
+    fontColor: '#ffedd5',
     premium: false
   },
   {
@@ -188,6 +208,7 @@ const THEME_PRESETS = [
     btnStyle: 'pill',
     btnColor: '#a91079',
     textColor: '#ffffff',
+    fontColor: '#ffffff',
     premium: false
   },
   {
@@ -197,6 +218,7 @@ const THEME_PRESETS = [
     btnStyle: 'dashed',
     btnColor: '#b45309',
     textColor: '#fffbeb',
+    fontColor: '#fffbeb',
     premium: true
   },
   {
@@ -206,6 +228,7 @@ const THEME_PRESETS = [
     btnStyle: 'soft',
     btnColor: 'rgba(2, 132, 199, 0.1)',
     textColor: '#0369a1',
+    fontColor: '#0c4a6e',
     premium: false
   },
   {
@@ -215,6 +238,7 @@ const THEME_PRESETS = [
     btnStyle: 'shadow',
     btnColor: '#27272a',
     textColor: '#ffffff',
+    fontColor: '#ffffff',
     premium: true
   }
 ];
@@ -229,7 +253,36 @@ export default function DesignTab() {
     <>
       {/* Theme Presets */}
       <section className="editor-card">
-        <h2 className="card-title"><Palette size={18} /> Designer Theme Presets</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <h2 className="card-title" style={{ margin: 0 }}><Palette size={18} /> Designer Theme Presets</h2>
+          <button 
+            className="btn btn-secondary" 
+            style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}
+            onClick={() => {
+              const updatedProfile = {
+                ...profile,
+                avatarDisplayMode: 'image',
+                avatarSize: 'md',
+                avatarFrameStyle: 'animated-border',
+                theme: {
+                  ...profile.theme,
+                  backgroundType: 'gradient',
+                  backgroundValue: 'linear-gradient(135deg, #0f172a, #1e293b)',
+                  font: 'Inter',
+                  fontColor: '#ffffff',
+                  buttonStyle: 'solid',
+                  buttonColor: '#3b82f6',
+                  buttonTextColor: '#ffffff',
+                  buttonBorderColor: 'transparent'
+                }
+              };
+              setProfile(updatedProfile);
+              handleSave(updatedProfile);
+            }}
+          >
+            Reset Design
+          </button>
+        </div>
         <div className="themes-grid">
           {THEME_PRESETS.map((preset, idx) => {
             const isSelected = profile.theme.backgroundValue === preset.value && profile.theme.buttonStyle === preset.btnStyle;
@@ -246,12 +299,14 @@ export default function DesignTab() {
                   const updatedProfile = {
                     ...profile,
                     theme: {
+                      ...profile.theme,
                       backgroundType: preset.type,
                       backgroundValue: preset.value,
                       buttonStyle: preset.btnStyle,
                       buttonColor: preset.btnColor,
                       buttonTextColor: preset.textColor,
-                      buttonBorderColor: preset.btnStyle === 'glassmorphic' ? 'rgba(255,255,255,0.2)' : 'transparent'
+                      buttonBorderColor: preset.btnStyle === 'glassmorphic' ? 'rgba(255,255,255,0.2)' : 'transparent',
+                      fontColor: preset.fontColor || '#ffffff'
                     }
                   };
                   setProfile(updatedProfile);

@@ -166,13 +166,13 @@ profile.put('/:username', authMiddleware, ownershipCheck(), async (c) => {
               button_border_radius=?, show_url=?, image_url=?, icon_name=?,
               link_type=?, price=?, currency=?, start_date=?, end_date=?
               WHERE id=? AND username=?`).bind(
-              link.title, link.url, link.active ? 1 : 0, idx,
-              link.buttonStyle || null, link.buttonColor || null,
-              link.buttonTextColor || null, link.buttonBorderColor || null,
-              link.buttonBorderRadius || null, link.showUrl ? 1 : 0,
-              link.imageUrl || null, link.iconName || null,
-              link.linkType || 'link', link.price || null, link.currency || 'USD',
-              link.startDate || null, link.endDate || null,
+              link.title ?? '', link.url ?? '', link.active === false ? 0 : 1, idx,
+              link.buttonStyle ?? null, link.buttonColor ?? null,
+              link.buttonTextColor ?? null, link.buttonBorderColor ?? null,
+              link.buttonBorderRadius ?? null, link.showUrl ? 1 : 0,
+              link.imageUrl ?? null, link.iconName ?? null,
+              link.linkType ?? 'link', link.price ?? null, link.currency ?? 'USD',
+              link.startDate ?? null, link.endDate ?? null,
               link.id, cleanUsername
             )
           );
@@ -181,13 +181,13 @@ profile.put('/:username', authMiddleware, ownershipCheck(), async (c) => {
           statements.push(
             c.env.DB.prepare('INSERT INTO links (id, username, title, url, is_active, display_order, button_style, button_color, button_text_color, button_border_color, button_border_radius, show_url, image_url, icon_name, link_type, price, currency, start_date, end_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
               .bind(
-                linkId, cleanUsername, link.title, link.url, link.active ? 1 : 0, idx,
-                link.buttonStyle || null, link.buttonColor || null,
-                link.buttonTextColor || null, link.buttonBorderColor || null,
-                link.buttonBorderRadius || null, link.showUrl ? 1 : 0,
-                link.imageUrl || null, link.iconName || null,
-                link.linkType || 'link', link.price || null, link.currency || 'USD',
-                link.startDate || null, link.endDate || null
+                linkId, cleanUsername, link.title ?? '', link.url ?? '', link.active === false ? 0 : 1, idx,
+                link.buttonStyle ?? null, link.buttonColor ?? null,
+                link.buttonTextColor ?? null, link.buttonBorderColor ?? null,
+                link.buttonBorderRadius ?? null, link.showUrl ? 1 : 0,
+                link.imageUrl ?? null, link.iconName ?? null,
+                link.linkType ?? 'link', link.price ?? null, link.currency ?? 'USD',
+                link.startDate ?? null, link.endDate ?? null
               )
           );
         }

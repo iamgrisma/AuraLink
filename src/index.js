@@ -51,6 +51,20 @@ app.get('*', async (c) => {
     return c.json({ error: 'API route not found' }, 404);
   }
 
+  // Pass-through static assets directly
+  if (path.match(/\.(js|css|ico|png|jpg|jpeg|svg|woff2?|json|txt|webmanifest)$/i) || path.startsWith('/assets/')) {
+    const assetReq = new Request(c.req.url, c.req.raw);
+    const assetRes = await c.env.ASSETS.fetch(assetReq);
+    if (!assetRes.ok) return c.text('Not Found', 404);
+    
+    // Add strong caching for hashed assets
+    const newRes = new Response(assetRes.body, assetRes);
+    if (path.startsWith('/assets/')) {
+      newRes.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+    }
+    return newRes;
+  }
+
   try {
     const indexFile = await c.env.ASSETS.fetch(new Request(new URL('/', url)));
     if (!indexFile.ok) return c.text('Not Found', 404);
@@ -102,7 +116,11 @@ app.get('*', async (c) => {
       }
     }
 
-    return c.html(html);
+    return c.html(html, 200, {
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
   } catch (err) {
     console.error('SPA Fallback Error:', err);
     return c.text('Internal Server Error', 500);

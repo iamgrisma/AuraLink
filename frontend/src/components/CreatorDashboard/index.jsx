@@ -198,97 +198,18 @@ function DashboardContent({ onLogout }) {
               </div>
 
               {/* TABS */}
-              {activeTab === 'links' && (
-                <LinksTab
-                  profile={profile}
-                  setProfile={setProfile}
-                  username={username}
-                  proStatus={proStatus}
-                  tempUsername={tempUsername}
-                  setTempUsername={setTempUsername}
-                  isUsernameAvailable={isUsernameAvailable}
-                  isUsernameChecked={isUsernameChecked}
-                  setIsUsernameChecked={setIsUsernameChecked}
-                  usernameSuggestions={usernameSuggestions}
-                  changingUsername={changingUsername}
-                  handleCheckUsername={handleCheckUsername}
-                  handleChangeUsernameSubmit={handleChangeUsernameSubmit}
-                  newTitle={newTitle}
-                  setNewTitle={setNewTitle}
-                  newUrl={newUrl}
-                  setNewUrl={setNewUrl}
-                  handleAddLink={handleAddLink}
-                  handleToggleLink={handleToggleLink}
-                  handleDeleteLink={handleDeleteLink}
-                  handleEditLinkText={handleEditLinkText}
-                  handleMoveLink={handleMoveLink}
-                  handleDuplicateLink={handleDuplicateLink}
-                  handleAddTemplateLink={handleAddTemplateLink}
-                  expandedLinkId={expandedLinkId}
-                  setExpandedLinkId={setExpandedLinkId}
-                  handleUpdateLinkStyle={handleUpdateLinkStyle}
-                  handleUpdatePresentation={handleUpdatePresentation}
-                  setMediaTarget={setMediaTarget}
-                  handleSave={handleSave}
-                  getSocialLink={getSocialLink}
-                  setSocialLink={setSocialLink}
-                />
-              )}
+              {activeTab === 'links' && <LinksTab />}
 
-              {activeTab === 'design' && (
-                <DesignTab
-                  profile={profile}
-                  proStatus={proStatus}
-                  handleUpdateTheme={handleUpdateTheme}
-                  setProfile={setProfile}
-                  handleSave={handleSave}
-                  setShowProModal={setShowProModal}
-                />
-              )}
+              {activeTab === 'design' && <DesignTab />}
 
-              {activeTab === 'analytics' && (
-                <AnalyticsTab analytics={analytics} />
-              )}
+              {activeTab === 'analytics' && <AnalyticsTab />}
 
-              {activeTab === 'admin' && isAdmin && (
-                <AdminTab
-                  adminSettings={adminSettings}
-                  setAdminSettings={setAdminSettings}
-                  adminPayments={adminPayments}
-                  setAdminPayments={setAdminPayments}
-                  adminUsers={adminUsers}
-                  setAdminUsers={setAdminUsers}
-                  adminReports={adminReports}
-                  setAdminReports={setAdminReports}
-                  savingSettings={savingSettings}
-                  handleSaveSettings={handleSaveSettings}
-                  handleAdminQRUpload={handleAdminQRUpload}
-                  activeApproval={activeApproval}
-                  setActiveApproval={setActiveApproval}
-                  approvalStartDate={approvalStartDate}
-                  setApprovalStartDate={setApprovalStartDate}
-                  approvalEndDate={approvalEndDate}
-                  setApprovalEndDate={setApprovalEndDate}
-                  approvalNotes={approvalNotes}
-                  setApprovalNotes={setApprovalNotes}
-                  submitApproval={submitApproval}
-                  enlargedReceiptUrl={enlargedReceiptUrl}
-                  setEnlargedReceiptUrl={setEnlargedReceiptUrl}
-                  handleAdminAction={handleAdminAction}
-                  handleResolveReport={handleResolveReport}
-                />
-              )}
+              {activeTab === 'admin' && isAdmin && <AdminTab />}
 
             </div>
 
             {/* Right: Phone preview */}
-            <Simulator
-              profile={profile}
-              username={username}
-              proStatus={proStatus}
-              showMobilePreview={showMobilePreview}
-              setShowMobilePreview={setShowMobilePreview}
-            />
+            <Simulator />
 
           </div>
         </main>

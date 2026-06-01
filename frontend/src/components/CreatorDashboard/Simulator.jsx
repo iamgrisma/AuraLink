@@ -18,7 +18,10 @@ const AVATAR_SIZE_MAP = {
   xl: 114
 };
 
-export default function Simulator({ profile, username, proStatus, showMobilePreview, setShowMobilePreview }) {
+import { useDashboard } from './context/DashboardContext';
+
+export default function Simulator() {
+  const { profile, username, proStatus, showMobilePreview, setShowMobilePreview } = useDashboard();
   if (!profile) return null;
 
   const avatarInitial = (profile.name || username || '?').trim().charAt(0).toUpperCase();

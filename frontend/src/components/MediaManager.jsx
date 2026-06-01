@@ -95,19 +95,19 @@ export default function MediaManager({ username, isPro, onSelectImage, onClose }
   };
 
   return (
-    <div style={{
+    <div className="media-modal-backdrop" style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
       background: 'rgba(0,0,0,0.85)', zIndex: 9999,
       display: 'flex', alignItems: 'center', justifyContent: 'center'
     }}>
-      <div style={{
+      <div className="media-modal-panel" style={{
         background: '#0f172a', width: '90%', maxWidth: '800px', height: '80vh',
         borderRadius: '16px', display: 'flex', flexDirection: 'column',
         border: '1px solid #1e293b', overflow: 'hidden', color: '#fff'
       }}>
         
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', borderBottom: '1px solid #1e293b' }}>
+        <div className="media-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', borderBottom: '1px solid #1e293b' }}>
           <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.25rem' }}>
             <Image className="text-primary" size={24} /> My Media Library
           </h2>
@@ -145,7 +145,7 @@ export default function MediaManager({ username, isPro, onSelectImage, onClose }
         })()}
 
         {/* Upload Bar */}
-        <div style={{ padding: '1.5rem', background: '#1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="media-upload-bar" style={{ padding: '1.5rem', background: '#1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h3 style={{ margin: 0, fontSize: '1rem', color: '#e2e8f0' }}>Upload New Image</h3>
             <p style={{ margin: 0, fontSize: '0.8rem', color: '#94a3b8' }}>Max size 5MB. JPG, PNG, GIF, WebP.</p>
@@ -177,7 +177,7 @@ export default function MediaManager({ username, isPro, onSelectImage, onClose }
               <p>Your media library is empty.</p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem' }}>
+            <div className="media-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem' }}>
               {mediaFiles.map((file) => (
                 <div 
                   key={file.key} 

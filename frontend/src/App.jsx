@@ -7,23 +7,39 @@ import PublicBioPage from './components/PublicBioPage';
 import ProSalesPage from './components/ProSalesPage';
 import { ToastProvider } from './components/ToastContext';
 
+import ErrorBoundary from './components/ErrorBoundary';
+
 function App() {
   const [currentPath, setCurrentPath] = useState(window.location.pathname || '/');
-  const [user, setUser] = useState(() => {
-    const cachedUser = localStorage.getItem('auralink_user');
-    if (cachedUser) {
-      try { return JSON.parse(cachedUser).username; } catch { return null; }
-    }
-    return null;
-  });
-  
-  const [role, setRole] = useState(() => {
-    const cachedUser = localStorage.getItem('auralink_user');
-    if (cachedUser) {
-      try { return JSON.parse(cachedUser).role || 'user'; } catch { return 'user'; }
-    }
-    return 'user';
-  });
+  const [loadingAuth, setLoadingAuth] = useState(true);
+  const [user, setUser] = useState(null);
+  const [role, setRole] = useState('user');
+
+  useEffect(() => {
+    // Securely fetch session from server instead of trusting localStorage
+    const verifySession = async () => {
+      try {
+        const res = await fetch('/api/auth/me', { credentials: 'include' });
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.user.username);
+          setRole(data.user.role);
+          // Optional: cache for UI, but server is source of truth
+          localStorage.setItem('auralink_user', JSON.stringify(data.user));
+        } else {
+          setUser(null);
+          setRole('user');
+          localStorage.removeItem('auralink_user');
+        }
+      } catch (err) {
+        console.error('Session verify failed', err);
+      } finally {
+        setLoadingAuth(false);
+      }
+    };
+    verifySession();
+  }, []);
+
 
   // Sync state on popstate change and handle legacy hashes
   useEffect(() => {
@@ -56,7 +72,6 @@ function App() {
       }
     }
 
-    // Session is now checked synchronously in useState
 
     return () => {
       window.removeEventListener('popstate', handlePopState);
@@ -79,9 +94,15 @@ function App() {
     navigateTo('/dashboard');
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    } catch (e) {
+      console.error('Logout error', e);
+    }
     localStorage.removeItem('auralink_user');
     setUser(null);
+    setRole('user');
     navigateTo('/');
   };
 
@@ -112,6 +133,9 @@ function App() {
       return <ProSalesPage onNavigate={navigateTo} />;
       
     case '/dashboard':
+      if (loadingAuth) {
+        return <div style={{display:'flex',justifyContent:'center',alignItems:'center',height:'100vh'}}>Loading...</div>;
+      }
       if (!user) {
         // Redirect to auth if not logged in
         window.history.replaceState(null, '', '/auth');
@@ -144,8 +168,10 @@ function App() {
 
 export default function AppWrapper() {
   return (
-    <ToastProvider>
-      <App />
-    </ToastProvider>
+    <ErrorBoundary>
+      <ToastProvider>
+        <App />
+      </ToastProvider>
+    </ErrorBoundary>
   );
 }

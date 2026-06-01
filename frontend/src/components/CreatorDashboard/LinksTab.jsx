@@ -42,40 +42,18 @@ const SOCIAL_SHAPE_OPTIONS = [
   { value: 'square', label: 'Square' }
 ];
 
-export default function LinksTab({
-  profile,
-  setProfile,
-  username,
-  proStatus,
-  tempUsername,
-  setTempUsername,
-  isUsernameAvailable,
-  isUsernameChecked,
-  setIsUsernameChecked,
-  usernameSuggestions,
-  changingUsername,
-  handleCheckUsername,
-  handleChangeUsernameSubmit,
-  newTitle,
-  setNewTitle,
-  newUrl,
-  setNewUrl,
-  handleAddLink,
-  handleToggleLink,
-  handleDeleteLink,
-  handleEditLinkText,
-  handleMoveLink,
-  handleDuplicateLink,
-  handleAddTemplateLink,
-  handleUpdatePresentation,
-  expandedLinkId,
-  setExpandedLinkId,
-  handleUpdateLinkStyle,
-  setMediaTarget,
-  handleSave,
-  getSocialLink,
-  setSocialLink
-}) {
+import { useDashboard } from './context/DashboardContext';
+
+export default function LinksTab() {
+  const {
+    profile, setProfile, username, proStatus, tempUsername, setTempUsername,
+    isUsernameAvailable, isUsernameChecked, setIsUsernameChecked, usernameSuggestions, changingUsername,
+    handleCheckUsername, handleChangeUsernameSubmit, newTitle, setNewTitle, newUrl, setNewUrl,
+    handleAddLink, handleToggleLink, handleDeleteLink, handleEditLinkText, handleMoveLink, handleDuplicateLink,
+    handleAddTemplateLink, handleUpdatePresentation, expandedLinkId, setExpandedLinkId, handleUpdateLinkStyle,
+    setMediaTarget, handleSave, getSocialLink, setSocialLink
+  } = useDashboard();
+
   const activeLinks = profile.links.filter(link => link.active).length;
   const avatarInitial = (profile.name || username || '?').trim().charAt(0).toUpperCase();
   const checklist = [

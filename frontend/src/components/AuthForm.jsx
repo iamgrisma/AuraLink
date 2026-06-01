@@ -18,6 +18,7 @@ export default function AuthForm({ onAuthSuccess, onBackToHome }) {
       const res = await fetch(`${API_BASE}/auth/google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ credential: response.credential })
       });
       const data = await res.json();
@@ -61,12 +62,11 @@ export default function AuthForm({ onAuthSuccess, onBackToHome }) {
     setError('');
     setLoading(true);
 
-    const endpoint = isLogin ? '/auth/login' : '/auth/register';
-
     try {
-      const res = await fetch(`${API_BASE}${endpoint}`, {
+      const res = await fetch(`${API_BASE}/auth/${isLogin ? 'login' : 'register'}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ username: username.trim(), password })
       });
 

@@ -380,12 +380,12 @@ export default function PublicBioPage({ username }) {
                   className={buttonClass}
                   style={{...computedStyles, position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1rem'}}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div className="bio-link-content" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     {link.imageUrl && <img src={link.imageUrl} alt="icon" style={{ width: '24px', height: '24px', borderRadius: '4px', objectFit: 'cover' }} />}
                     {!link.imageUrl && IconComponent && <IconComponent size={20} />}
                     <span>{link.title}</span>
                     {link.linkType === 'product' && (
-                      <span style={{ background: 'var(--success)', color: '#000', padding: '2px 6px', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 'bold' }}>
+                      <span className="product-price-badge" style={{ background: 'var(--success)', color: '#000', padding: '2px 6px', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 'bold' }}>
                         {link.currency === 'USD' ? '$' : link.currency === 'EUR' ? '€' : '£'}{link.price}
                       </span>
                     )}
@@ -424,8 +424,8 @@ export default function PublicBioPage({ username }) {
 
       {/* Report Modal */}
       {reportOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-          <div style={{ background: '#1e293b', padding: '2rem', borderRadius: '12px', width: '90%', maxWidth: '400px', color: '#fff', fontFamily: 'Inter, sans-serif' }}>
+        <div className="responsive-modal-backdrop" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <div className="responsive-modal-panel" style={{ background: '#1e293b', padding: '2rem', borderRadius: '12px', width: '90%', maxWidth: '400px', color: '#fff', fontFamily: 'Inter, sans-serif' }}>
             <h3 style={{ margin: '0 0 1rem 0' }}>Report Profile</h3>
             {reportStatus === 'success' ? (
               <p style={{ color: '#4ade80' }}>Report submitted successfully. Our team will review it.</p>
@@ -437,7 +437,7 @@ export default function PublicBioPage({ username }) {
                   placeholder="Why are you reporting this profile? Please provide details."
                   style={{ width: '100%', height: '100px', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '0.5rem', borderRadius: '4px', marginBottom: '1rem', resize: 'vertical' }}
                 />
-                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                <div className="modal-actions-row" style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
                   <button onClick={() => setReportOpen(false)} style={{ background: 'transparent', color: '#94a3b8', border: 'none', cursor: 'pointer', padding: '0.5rem' }}>Cancel</button>
                   <button onClick={handleReport} disabled={reportStatus === 'submitting' || !reportReason} style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', cursor: 'pointer', opacity: (reportStatus === 'submitting' || !reportReason) ? 0.5 : 1 }}>
                     {reportStatus === 'submitting' ? 'Submitting...' : 'Submit Report'}

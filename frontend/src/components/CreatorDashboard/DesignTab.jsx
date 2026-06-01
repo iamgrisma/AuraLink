@@ -183,14 +183,12 @@ const THEME_PRESETS = [
   }
 ];
 
-export default function DesignTab({
-  profile,
-  proStatus,
-  handleUpdateTheme,
-  setProfile,
-  handleSave,
-  setShowProModal
-}) {
+import { useDashboard } from './context/DashboardContext';
+
+export default function DesignTab() {
+  const {
+    profile, proStatus, handleUpdateTheme, setProfile, handleSave, setShowProModal
+  } = useDashboard();
   return (
     <>
       {/* Theme Presets */}
@@ -247,7 +245,7 @@ export default function DesignTab({
         <h2 className="card-title"><Palette size={18} /> Typography & Buttons</h2>
         
         {/* Font selection */}
-        <div className="form-group" style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem' }}>
+        <div className="form-group typography-grid" style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem' }}>
           <div style={{ flex: 1 }}>
             <label>Font Styling</label>
             <select 
@@ -323,7 +321,7 @@ export default function DesignTab({
         {/* Background Picker */}
         <div className="form-group">
           <label>Custom Page Color</label>
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <div className="color-picker-row" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <input 
               type="color" 
               value={profile.theme.backgroundType === 'flat' ? profile.theme.backgroundValue : '#0f172a'}

@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 import { useToast } from '../../ToastContext';
 import ConfirmDialog from '../../ConfirmDialog';
 
-export const DashboardContext = createContext();
+const DashboardContext = createContext();
 const API_BASE = '/api';
 
 export function DashboardProvider({ children, username, isAdmin, onUsernameChange }) {

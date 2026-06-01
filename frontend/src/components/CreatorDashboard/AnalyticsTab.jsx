@@ -1,6 +1,9 @@
 import { Eye, Link2, BarChart3 } from 'lucide-react';
 
-export default function AnalyticsTab({ analytics }) {
+import { useDashboard } from './context/DashboardContext';
+
+export default function AnalyticsTab() {
+  const { analytics } = useDashboard();
   if (!analytics) return <p>No analytics data available.</p>;
 
   return (

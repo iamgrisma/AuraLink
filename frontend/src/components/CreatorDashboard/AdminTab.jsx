@@ -1,28 +1,15 @@
 import { Settings, BarChart3, Shield, Trash2 } from 'lucide-react';
 
-export default function AdminTab({
-  adminSettings,
-  setAdminSettings,
-  adminPayments,
-  adminUsers,
-  adminReports,
-  savingSettings,
-  handleSaveSettings,
-  handleAdminQRUpload,
-  activeApproval,
-  setActiveApproval,
-  approvalStartDate,
-  setApprovalStartDate,
-  approvalEndDate,
-  setApprovalEndDate,
-  approvalNotes,
-  setApprovalNotes,
-  submitApproval,
-  enlargedReceiptUrl,
-  setEnlargedReceiptUrl,
-  handleAdminAction,
-  handleResolveReport
-}) {
+import { useDashboard } from './context/DashboardContext';
+
+export default function AdminTab() {
+  const {
+    adminSettings, setAdminSettings, adminPayments, adminUsers, adminReports, savingSettings,
+    handleSaveSettings, handleAdminQRUpload, activeApproval, setActiveApproval,
+    approvalStartDate, setApprovalStartDate, approvalEndDate, setApprovalEndDate,
+    approvalNotes, setApprovalNotes, submitApproval, enlargedReceiptUrl, setEnlargedReceiptUrl,
+    handleAdminAction, handleResolveReport
+  } = useDashboard();
   return (
     <>
       {/* 1. Global Platform Settings */}
@@ -61,7 +48,7 @@ export default function AdminTab({
           </div>
           <div className="form-group">
             <label>Payment QR Code Upload (Cloudflare R2)</label>
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginTop: '0.4rem' }}>
+            <div className="admin-upload-row" style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginTop: '0.4rem' }}>
               {adminSettings.payment_qr_url ? (
                 <img src={adminSettings.payment_qr_url} alt="QR Code Preview" style={{ width: '60px', height: '60px', objectFit: 'contain', border: '1px solid var(--border-light)', borderRadius: '4px', background: '#fff' }} />
               ) : (
@@ -122,7 +109,7 @@ export default function AdminTab({
                   </td>
                   <td>
                     {p.status === 'pending' && (
-                      <div style={{ display: 'flex', gap: '0.3rem' }}>
+                      <div className="admin-actions-row" style={{ display: 'flex', gap: '0.3rem' }}>
                         <button 
                           onClick={() => {
                             setActiveApproval({ username: p.username, logId: p.id, action: 'grant_pro' });
@@ -189,7 +176,7 @@ export default function AdminTab({
                     {u.account_status === 'suspended' ? <span style={{ color: 'var(--danger)', fontWeight: '500' }}>Suspended</span> : <span style={{ color: 'var(--success)' }}>Active</span>}
                   </td>
                   <td>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <div className="admin-actions-row" style={{ display: 'flex', gap: '0.5rem' }}>
                       {u.pro_status !== 'approved' ? (
                         <button onClick={() => { setActiveApproval({ username: u.username, logId: null, action: 'grant_pro' }); setApprovalNotes('Granted by administrator.'); }} className="btn-primary" style={{ fontSize: '0.7rem', padding: '0.3rem 0.6rem' }}>Grant PRO</button>
                       ) : (
@@ -296,7 +283,7 @@ export default function AdminTab({
               />
             </div>
 
-            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+            <div className="modal-actions-row" style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
               <button onClick={() => { setActiveApproval(null); setApprovalNotes(''); }} className="btn-secondary" style={{ padding: '0.4rem 1rem', fontSize: '0.85rem' }}>Cancel</button>
               <button onClick={submitApproval} className="btn-primary" style={{ padding: '0.4rem 1.5rem', background: activeApproval.action === 'revoke_pro' ? 'var(--danger)' : 'var(--success)', border: 'none', color: '#000', fontSize: '0.85rem' }}>
                 {activeApproval.action === 'revoke_pro' ? 'Revoke PRO' : 'Grant PRO'}

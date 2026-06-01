@@ -48,7 +48,7 @@ export default function MediaManager({ username, isPro, onSelectImage, onClose }
 
     try {
       setUploading(true);
-      const res = await fetch(`${API_BASE}/upload`, {
+      const res = await fetch(`${API_BASE}/media`, {
         method: 'POST',
         body: formData,
         credentials: 'include'

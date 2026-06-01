@@ -44,7 +44,8 @@ export default function PublicBioPage({ username }) {
           reportedUsername: username,
           reason: reportReason,
           reporterId: loggedInUser?.username || null
-        })
+        }),
+        credentials: 'include'
       });
       setReportStatus('success');
       setTimeout(() => {
@@ -131,7 +132,8 @@ export default function PublicBioPage({ username }) {
         fetch(`${API_BASE}/analytics/view/${username}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ referrer: referrerVal })
+          body: JSON.stringify({ referrer: referrerVal }),
+          credentials: 'include'
         }).catch(err => console.error('Failed to log view analytics:', err));
 
       } catch (err) {
@@ -151,7 +153,8 @@ export default function PublicBioPage({ username }) {
     fetch(`${API_BASE}/analytics/click/${username}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ linkId })
+      body: JSON.stringify({ linkId }),
+      credentials: 'include'
     }).catch(err => console.error('Failed to log click analytics:', err));
   };
 

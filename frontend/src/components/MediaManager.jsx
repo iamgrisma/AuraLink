@@ -17,7 +17,7 @@ export default function MediaManager({ username, isPro, onSelectImage, onClose }
     try {
       setLoading(true);
       setError(null);
-      const res = await fetch(`${API_BASE}/media/${username}`);
+      const res = await fetch(`${API_BASE}/media/${username}`, { credentials: 'include' });
       if (!res.ok) throw new Error('Failed to fetch media files');
       const data = await res.json();
       setMediaFiles(data.files || []);
@@ -50,7 +50,8 @@ export default function MediaManager({ username, isPro, onSelectImage, onClose }
       setUploading(true);
       const res = await fetch(`${API_BASE}/upload`, {
         method: 'POST',
-        body: formData
+        body: formData,
+        credentials: 'include'
       });
       if (res.ok) {
         await fetchMedia();
@@ -80,7 +81,8 @@ export default function MediaManager({ username, isPro, onSelectImage, onClose }
 
     try {
       const res = await fetch(`${API_BASE}/media/${username}/${filename}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        credentials: 'include'
       });
       if (res.ok) {
         setMediaFiles(prev => prev.filter(f => f.key !== fileKey));

@@ -19,15 +19,10 @@ function DashboardContent({ onLogout }) {
   const { 
     activeTab, setActiveTab, profile, loading, proStatus, 
     showProModal, setShowProModal, mobileMenuOpen, setMobileMenuOpen,
-    showMobilePreview, setShowMobilePreview, isAdmin, username,
-    adminUsers, adminReports, adminSettings, adminPayments, activeApproval, savingSettings,
-    newTitle, newUrl, expandedLinkId, mediaTarget, copiedUrl,
-    setNewTitle, setNewUrl, setExpandedLinkId, handleAddLink, handleDeleteLink, handleToggleLink, handleEditLinkText, handleMoveLink, handleDuplicateLink,
-    handleSave, saving, handleUpdateTheme, handleUpdatePresentation, fetchData,
-    analytics, handleAdminAction, handleResolveReport, handleSaveSettings, handleAdminQRUpload, submitApproval,
-    handleUpgradeToPro, handleProUpgradeSuccess, handleCopyPublicUrl, handleAddTemplateLink,
-    tempUsername, setTempUsername, isUsernameAvailable, isUsernameChecked, setIsUsernameChecked, usernameSuggestions, changingUsername, handleCheckUsername, handleChangeUsernameSubmit,
-    handleUpdateLinkStyle, setMediaTarget, getSocialLink, setSocialLink, setAdminSettings, setAdminPayments, setAdminUsers, setAdminReports, setActiveApproval, approvalStartDate, setApprovalStartDate, approvalEndDate, setApprovalEndDate, approvalNotes, setApprovalNotes, enlargedReceiptUrl, setEnlargedReceiptUrl, handleMediaSelect, setProfile
+    setShowMobilePreview, isAdmin, username, mediaTarget, copiedUrl,
+    handleSave, saving, fetchData, handleUpgradeToPro,
+    handleProUpgradeSuccess, handleCopyPublicUrl,
+    setMediaTarget, handleMediaSelect
   } = useDashboard();
 
 
@@ -45,7 +40,7 @@ function DashboardContent({ onLogout }) {
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: '1rem', padding: '2rem', textAlign: 'center' }}>
         <h2 style={{ color: 'var(--danger)' }}>Profile Not Found</h2>
         <p style={{ color: 'var(--text-secondary)' }}>Could not load the profile configuration for @{username}.</p>
-        <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+        <div className="empty-state-actions" style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
           <button onClick={fetchData} className="btn btn-primary"><RefreshCw size={16} /> Retry Connection</button>
           <button onClick={onLogout} className="btn btn-secondary">Log Out</button>
         </div>
@@ -225,7 +220,7 @@ function DashboardContent({ onLogout }) {
       )}
       
       {/* Save Action Bar (Sticky at bottom of screen for desktop) */}
-      <div style={{
+      <div className="dashboard-save-bar" style={{
         position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 100,
         backgroundColor: 'var(--bg-secondary)', padding: '1rem', borderRadius: '12px',
         boxShadow: '0 10px 25px rgba(0,0,0,0.5)', border: '1px solid var(--border-light)',

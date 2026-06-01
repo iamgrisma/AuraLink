@@ -1107,6 +1107,33 @@ code {
   min-width: 0;
 }
 
+.profile-card-header {
+  gap: 1rem;
+}
+
+.profile-card-header p,
+.profile-card-header a {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.avatar-upload-row,
+.username-check-row,
+.link-product-row,
+.link-custom-row,
+.color-control-row,
+.admin-actions-row {
+  flex-wrap: wrap;
+}
+
+.link-custom-row > div {
+  min-width: min(220px, 100%);
+}
+
+.add-link-button {
+  justify-content: center;
+}
+
 .social-handles-grid,
 .compact-control-grid,
 .link-fields-grid,
@@ -1115,6 +1142,10 @@ code {
 .themes-grid,
 .analytics-grid,
 .charts-row {
+  min-width: 0;
+}
+
+.link-settings-grid > div {
   min-width: 0;
 }
 
@@ -2225,6 +2256,53 @@ input:checked + .slider:before {
   .dashboard-save-bar {
     right: 1.25rem !important;
     bottom: 1.25rem !important;
+  }
+
+  .profile-card-header,
+  .avatar-upload-row,
+  .username-check-row,
+  .link-product-row,
+  .link-custom-row,
+  .typography-grid,
+  .color-picker-row,
+  .admin-upload-row,
+  .media-modal-header,
+  .media-upload-bar,
+  .empty-state-actions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .social-handles-grid,
+  .compact-control-grid,
+  .link-fields-grid,
+  .link-schedule-grid,
+  .link-settings-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .link-settings-grid > div[style*="grid-column"] {
+    grid-column: auto !important;
+  }
+
+  .username-check-row .btn,
+  .avatar-upload-row .btn,
+  .add-link-button,
+  .link-product-row .input-control,
+  .link-custom-row > div,
+  .typography-grid > div {
+    width: 100% !important;
+  }
+
+  .link-actions,
+  .admin-actions-row,
+  .modal-actions-row {
+    justify-content: flex-start !important;
+    flex-wrap: wrap;
+  }
+
+  .editor-pane {
+    overflow: visible !important;
   }
 }
 

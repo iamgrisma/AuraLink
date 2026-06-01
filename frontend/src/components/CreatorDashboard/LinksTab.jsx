@@ -133,7 +133,7 @@ export default function LinksTab() {
 
       {/* Profile Info */}
       <section className="editor-card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <div className="profile-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
           <h2 className="card-title" style={{ margin: 0 }}><User size={18} /> Profile Bio Details</h2>
           <p style={{ margin: 0, fontSize: '0.85rem' }}>
             Live URL: <a href={`/@${username}`} target="_blank" rel="noreferrer" style={{ color: 'var(--accent-primary)', fontWeight: '500', textDecoration: 'underline' }}>
@@ -144,7 +144,7 @@ export default function LinksTab() {
 
         <div className="form-group" style={{ marginBottom: '1.5rem' }}>
           <label>Avatar Photo (Upload to Cloudflare R2)</label>
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginTop: '0.4rem' }}>
+          <div className="avatar-upload-row" style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginTop: '0.4rem' }}>
             {profile.avatarUrl ? (
               <img src={profile.avatarUrl} alt="Avatar Preview" style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border-light)' }} />
             ) : (
@@ -215,7 +215,7 @@ export default function LinksTab() {
 
         <div className="form-group" style={{ marginBottom: '1.5rem', borderTop: '1px solid var(--border-light)', paddingTop: '1.5rem' }}>
           <label style={{ fontWeight: '600', display: 'block', marginBottom: '0.75rem' }}>Social Profile Handles</label>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.75rem' }}>
+          <div className="social-handles-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.75rem' }}>
             {['instagram', 'youtube', 'twitter', 'tiktok', 'facebook', 'github', 'linkedin'].map(platform => (
               <div key={platform} style={{ display: 'flex', flexDirection: 'column' }}>
                 <label style={{ fontSize: '0.75rem', textTransform: 'capitalize', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>{platform}</label>
@@ -232,7 +232,7 @@ export default function LinksTab() {
             ))}
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.75rem', marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border-light)' }}>
+          <div className="compact-control-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.75rem', marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border-light)' }}>
             <div>
               <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', display: 'block' }}>Social Layout</label>
               <select className="input-control" value={profile.socialDisplayStyle || 'icons'} onChange={(e) => handleUpdatePresentation('socialDisplayStyle', e.target.value)} style={{ fontSize: '0.8rem', padding: '0.4rem' }}>
@@ -301,7 +301,7 @@ export default function LinksTab() {
 
         <div className="form-group" style={{ marginBottom: '1rem' }}>
           <label>New Username</label>
-          <div style={{ position: 'relative', display: 'flex', gap: '0.5rem' }}>
+          <div className="username-check-row" style={{ position: 'relative', display: 'flex', gap: '0.5rem' }}>
             <div style={{ position: 'relative', flex: 1 }}>
               <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>@</span>
               <input
@@ -391,7 +391,7 @@ export default function LinksTab() {
             />
           </div>
 
-          <button type="submit" className="btn btn-secondary" style={{ width: 'fit-content' }}>
+          <button type="submit" className="btn btn-secondary add-link-button" style={{ width: 'fit-content' }}>
             <Plus size={16} /> Add to List
           </button>
         </form>
@@ -474,7 +474,7 @@ export default function LinksTab() {
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: '0.75rem' }}>
+                <div className="link-fields-grid" style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: '0.75rem' }}>
                   <input
                     type="text"
                     value={link.title}
@@ -515,7 +515,7 @@ export default function LinksTab() {
                             Sell as Product
                           </label>
                           {link.linkType === 'product' && (
-                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <div className="link-product-row" style={{ display: 'flex', gap: '0.5rem' }}>
                               <input type="number" value={link.price || 0} onChange={(e) => handleUpdateLinkStyle(link.id, 'price', parseFloat(e.target.value))} onBlur={() => handleSave()} className="input-control" placeholder="Price" />
                               <select value={link.currency || 'NPR'} onChange={(e) => handleUpdateLinkStyle(link.id, 'currency', e.target.value)} className="input-control">
                                 <option value="USD">USD</option>
@@ -529,7 +529,7 @@ export default function LinksTab() {
 
                         <div style={{ marginBottom: '1rem', padding: '0.5rem', border: '1px solid var(--border-light)', borderRadius: '6px', background: 'rgba(245, 158, 11, 0.05)' }}>
                           <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#f59e0b', display: 'block', marginBottom: '0.5rem' }}>Link Scheduling (Pro Feature)</span>
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                          <div className="link-schedule-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                             <div>
                               <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Show From</label>
                               <input
@@ -555,7 +555,7 @@ export default function LinksTab() {
                       </>
                     )}
 
-                    <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+                    <div className="link-custom-row" style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
                       <div style={{ flex: 1 }}>
                         <label>Icon</label>
                         <select value={link.iconName || ''} onChange={(e) => handleUpdateLinkStyle(link.id, 'iconName', e.target.value)} className="input-control">
@@ -578,7 +578,7 @@ export default function LinksTab() {
                       </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                    <div className="link-settings-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                       <div>
                         <label>Button Style</label>
                         <select value={link.buttonStyle || ''} onChange={(e) => handleUpdateLinkStyle(link.id, 'buttonStyle', e.target.value)} className="input-control">
@@ -604,7 +604,7 @@ export default function LinksTab() {
                       </div>
                       <div>
                         <label>Bg Color</label>
-                        <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                        <div className="color-control-row" style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
                           <input
                             type="color"
                             value={link.buttonColor && link.buttonColor.startsWith('#') ? link.buttonColor : '#3b82f6'}
@@ -624,7 +624,7 @@ export default function LinksTab() {
                       </div>
                       <div>
                         <label>Text Color</label>
-                        <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                        <div className="color-control-row" style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
                           <input
                             type="color"
                             value={link.buttonTextColor && link.buttonTextColor.startsWith('#') ? link.buttonTextColor : '#ffffff'}
@@ -644,7 +644,7 @@ export default function LinksTab() {
                       </div>
                       <div style={{ gridColumn: 'span 2' }}>
                         <label>Border Color</label>
-                        <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                        <div className="color-control-row" style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
                           <input
                             type="color"
                             value={link.buttonBorderColor && link.buttonBorderColor.startsWith('#') ? link.buttonBorderColor : '#cccccc'}

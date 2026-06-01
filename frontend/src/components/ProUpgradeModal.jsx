@@ -46,7 +46,8 @@ export default function ProUpgradeModal({ isOpen, onClose, username, onUpgradeSu
 
       const res = await fetch('/api/upload', {
         method: 'POST',
-        body: formData
+        body: formData,
+        credentials: 'include'
       });
       const data = await res.json();
       if (res.ok && data.url) {
@@ -68,7 +69,8 @@ export default function ProUpgradeModal({ isOpen, onClose, username, onUpgradeSu
       const res = await fetch(`/api/profile/${username}/request-pro`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ txnId, receiptImageUrl: receiptUrl })
+        body: JSON.stringify({ txnId, receiptImageUrl: receiptUrl }),
+        credentials: 'include'
       });
       if (res.ok) {
         addToast({ type: 'success', message: 'Pro request submitted! Admin will verify your payment shortly.' });

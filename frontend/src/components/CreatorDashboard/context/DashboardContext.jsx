@@ -153,8 +153,8 @@ export function DashboardProvider({ children, username, isAdmin, onUsernameChang
       setLoading(true);
 
       const [profRes, analRes] = await Promise.all([
-        fetch(`${API_BASE}/profile/${username}`),
-        fetch(`${API_BASE}/analytics/report/${username}`)
+        fetch(`${API_BASE}/profile/${username}`, { credentials: 'include' }),
+        fetch(`${API_BASE}/analytics/report/${username}`, { credentials: 'include' })
       ]);
 
       if (profRes.ok) {
@@ -173,10 +173,10 @@ export function DashboardProvider({ children, username, isAdmin, onUsernameChang
       // Admin data fetch
       if (isAdmin) {
         const [usersRes, reportsRes, settingsRes, paymentsRes] = await Promise.all([
-          fetch(`${API_BASE}/admin/users`),
-          fetch(`${API_BASE}/admin/reports`),
-          fetch(`${API_BASE}/settings`),
-          fetch(`${API_BASE}/admin/payments`)
+          fetch(`${API_BASE}/admin/users`, { credentials: 'include' }),
+          fetch(`${API_BASE}/admin/reports`, { credentials: 'include' }),
+          fetch(`${API_BASE}/settings`), 
+          fetch(`${API_BASE}/admin/payments`, { credentials: 'include' })
         ]);
         if (usersRes.ok) setAdminUsers(await usersRes.json());
         if (reportsRes.ok) setAdminReports(await reportsRes.json());
@@ -203,7 +203,8 @@ export function DashboardProvider({ children, username, isAdmin, onUsernameChang
       const res = await fetch(`${API_BASE}/profile/${username}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedProfile)
+        body: JSON.stringify(updatedProfile),
+        credentials: 'include'
       });
       if (res.ok) {
         const data = await res.json();
@@ -238,11 +239,12 @@ export function DashboardProvider({ children, username, isAdmin, onUsernameChang
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
+        credentials: 'include'
       });
       if (res.ok) {
         // Refresh users
-        const usersRes = await fetch(`${API_BASE}/admin/users`);
+        const usersRes = await fetch(`${API_BASE}/admin/users`, { credentials: 'include' });
         if (usersRes.ok) setAdminUsers(await usersRes.json());
       } else {
         addToast({ type: 'error', message: 'Action failed.' });
@@ -257,11 +259,12 @@ export function DashboardProvider({ children, username, isAdmin, onUsernameChang
       const res = await fetch(`${API_BASE}/admin/reports/${reportId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'resolve' })
+        body: JSON.stringify({ action: 'resolve' }),
+        credentials: 'include'
       });
       if (res.ok) {
         // Refresh reports
-        const reportsRes = await fetch(`${API_BASE}/admin/reports`);
+        const reportsRes = await fetch(`${API_BASE}/admin/reports`, { credentials: 'include' });
         if (reportsRes.ok) setAdminReports(await reportsRes.json());
       } else {
         addToast({ type: 'error', message: 'Action failed.' });
@@ -299,7 +302,8 @@ export function DashboardProvider({ children, username, isAdmin, onUsernameChang
       const res = await fetch(`${API_BASE}/admin/settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(adminSettings)
+        body: JSON.stringify(adminSettings),
+        credentials: 'include'
       });
       if (res.ok) {
         addToast({ type: 'success', message: 'Global configurations saved successfully!' });
@@ -323,7 +327,8 @@ export function DashboardProvider({ children, username, isAdmin, onUsernameChang
       formData.append('username', 'admin');
       const res = await fetch(`${API_BASE}/upload`, {
         method: 'POST',
-        body: formData
+        body: formData,
+        credentials: 'include'
       });
       const data = await res.json();
       if (res.ok && data.url) {
@@ -350,13 +355,14 @@ export function DashboardProvider({ children, username, isAdmin, onUsernameChang
           pro_expires_at: activeApproval.action === 'revoke_pro' ? null : new Date(approvalEndDate).toISOString(),
           logId: activeApproval.logId || null,
           adminNotes: approvalNotes
-        })
+        }),
+        credentials: 'include'
       });
       if (res.ok) {
         addToast({ type: 'success', message: `Successfully updated membership status for @${activeApproval.username}` });
         const [uRes, pRes] = await Promise.all([
-          fetch(`${API_BASE}/admin/users`),
-          fetch(`${API_BASE}/admin/payments`)
+          fetch(`${API_BASE}/admin/users`, { credentials: 'include' }),
+          fetch(`${API_BASE}/admin/payments`, { credentials: 'include' })
         ]);
         if (uRes.ok) setAdminUsers(await uRes.json());
         if (pRes.ok) setAdminPayments(await pRes.json());

@@ -17,10 +17,10 @@ export default function MediaManager({ username, isPro, onSelectImage, onClose }
     try {
       setLoading(true);
       setError(null);
-      const res = await fetch(`${API_BASE}/media/${username}`, { credentials: 'include' });
+      const res = await fetch(`${API_BASE}/media/list/${username}`, { credentials: 'include' });
       if (!res.ok) throw new Error('Failed to fetch media files');
       const data = await res.json();
-      setMediaFiles(data.files || []);
+      setMediaFiles(data || []);
     } catch (err) {
       setError(err.message);
     } finally {

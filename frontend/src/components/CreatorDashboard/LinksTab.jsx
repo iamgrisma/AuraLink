@@ -18,6 +18,7 @@ const AVATAR_SIZE_OPTIONS = [
   { value: 'lg', label: 'Large' },
   { value: 'xl', label: 'Extra large' }
 ];
+
 const AVATAR_FRAME_OPTIONS = [
   { value: 'animated-border', label: 'Animated border' },
   { value: 'frame', label: 'Clean frame' },
@@ -25,16 +26,17 @@ const AVATAR_FRAME_OPTIONS = [
   { value: 'none', label: 'No frame' }
 ];
 const SOCIAL_LAYOUT_OPTIONS = [
-  { value: 'icons', label: 'Icon grid' },
-  { value: 'stack', label: 'Stacked rows' },
-  { value: 'pills', label: 'Pills' },
-  { value: 'text', label: 'Text labels' }
+  { value: 'icons', label: 'Icon grid (No Text)' },
+  { value: 'stack', label: 'Stacked rows (Icon + Text)' },
+  { value: 'pills', label: 'Pills (Icon + Text)' },
+  { value: 'text', label: 'Text labels only' }
 ];
 const SOCIAL_TONE_OPTIONS = [
   { value: 'brand', label: 'Brand colors' },
   { value: 'mono', label: 'Single color' },
   { value: 'outline', label: 'Outlined' },
-  { value: 'glass', label: 'Glass' }
+  { value: 'glass', label: 'Glass' },
+  { value: 'custom', label: 'Custom Color' }
 ];
 const SOCIAL_SHAPE_OPTIONS = [
   { value: 'circle', label: 'Circle' },
@@ -233,29 +235,6 @@ export default function LinksTab() {
           </div>
           
           <div className="compact-control-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.75rem', marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border-light)' }}>
-            <div>
-              <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', display: 'block' }}>Social Layout</label>
-              <select className="input-control" value={profile.socialDisplayStyle || 'icons'} onChange={(e) => handleUpdatePresentation('socialDisplayStyle', e.target.value)} style={{ fontSize: '0.8rem', padding: '0.4rem' }}>
-                {SOCIAL_LAYOUT_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', display: 'block' }}>Icon Tone</label>
-              <select className="input-control" value={profile.socialIconStyle || 'brand'} onChange={(e) => handleUpdatePresentation('socialIconStyle', e.target.value)} style={{ fontSize: '0.8rem', padding: '0.4rem' }}>
-                {SOCIAL_TONE_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', display: 'block' }}>Icon Shape</label>
-              <select className="input-control" value={profile.socialIconShape || 'circle'} onChange={(e) => handleUpdatePresentation('socialIconShape', e.target.value)} style={{ fontSize: '0.8rem', padding: '0.4rem' }}>
-                {SOCIAL_SHAPE_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-          <label style={{ fontWeight: '600' }}>SEO Settings</label>
           <input
             type="text"
             value={profile.seo?.title || ''}

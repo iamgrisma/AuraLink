@@ -60,8 +60,9 @@ export default function Simulator() {
     }[platform]];
     if (!Icon) return null;
 
-    const brandColor = SOCIAL_COLOR_MAP[platform] || '#ffffff';
-    const toneColor = socialIconStyle === 'brand' ? brandColor : '#ffffff';
+    const fontColor = profile.theme.backgroundValue.includes('#fdf2f8') ? '#4c0519' : '#ffffff';
+    const brandColor = SOCIAL_COLOR_MAP[platform] || fontColor;
+    const toneColor = socialIconStyle === 'brand' ? brandColor : (socialIconStyle === 'custom' ? (profile.socialIconColor || fontColor) : fontColor);
     const label = platform.charAt(0).toUpperCase() + platform.slice(1);
     const handleText = handle.startsWith('@') ? handle : `@${handle}`;
 
@@ -70,6 +71,7 @@ export default function Simulator() {
         key={platform}
         href="#"
         onClick={(e) => e.preventDefault()}
+        rel="noopener noreferrer nofollow"
         className={`social-item social-layout-${socialDisplayStyle} social-tone-${socialIconStyle} social-shape-${socialIconShape}`}
         style={{
           color: toneColor,

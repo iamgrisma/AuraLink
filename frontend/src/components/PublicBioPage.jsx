@@ -241,7 +241,7 @@ export default function PublicBioPage({ username }) {
     if (!Icon) return null;
 
     const brandColor = SOCIAL_COLOR_MAP[platform] || globalFontColor;
-    const toneColor = socialIconStyle === 'brand' ? brandColor : globalFontColor;
+    const toneColor = socialIconStyle === 'brand' ? brandColor : (socialIconStyle === 'custom' ? (profile.socialIconColor || globalFontColor) : globalFontColor);
     const itemClass = `social-item social-layout-${socialDisplayStyle} social-tone-${socialIconStyle} social-shape-${socialIconShape}`;
     const label = platform.charAt(0).toUpperCase() + platform.slice(1);
     const href = getPlatformUrl(platform, handle);

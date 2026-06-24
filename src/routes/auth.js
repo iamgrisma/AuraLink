@@ -214,7 +214,7 @@ auth.get('/me', authMiddleware, async (c) => {
 
 // --- Logout ---
 auth.post('/logout', async (c) => {
-  deleteCookie(c, 'auralink_session', { path: '/' });
+  deleteCookie(c, 'auralink_session', { path: '/', secure: true, sameSite: 'Strict' });
   return c.json({ message: 'Logged out successfully' });
 });
 

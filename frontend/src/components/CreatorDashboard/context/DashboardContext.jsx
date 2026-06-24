@@ -191,7 +191,7 @@ export function DashboardProvider({ children, username, isAdmin, onUsernameChang
         const [usersRes, reportsRes, settingsRes, paymentsRes] = await Promise.all([
           fetch(`${API_BASE}/admin/users`, { credentials: 'include' }),
           fetch(`${API_BASE}/admin/reports`, { credentials: 'include' }),
-          fetch(`${API_BASE}/settings`), 
+          fetch(`${API_BASE}/admin/settings`, { credentials: 'include' }), 
           fetch(`${API_BASE}/admin/payments`, { credentials: 'include' })
         ]);
         if (usersRes.ok) setAdminUsers(await usersRes.json());

@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS profiles (
     social_display_style TEXT DEFAULT 'icons',
     social_icon_style TEXT DEFAULT 'brand',
     social_icon_shape TEXT DEFAULT 'circle',
+    social_icon_color TEXT,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -86,6 +87,7 @@ CREATE TABLE IF NOT EXISTS analytics_views (
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     referrer TEXT DEFAULT 'Direct',
     user_agent TEXT,
+    device_type TEXT DEFAULT 'desktop',
     country TEXT
 );
 
@@ -94,6 +96,7 @@ CREATE TABLE IF NOT EXISTS analytics_clicks (
     id TEXT PRIMARY KEY,
     username TEXT,
     link_id TEXT,
+    link_url TEXT,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     user_agent TEXT
 );
@@ -150,6 +153,8 @@ CREATE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id);
 CREATE INDEX IF NOT EXISTS idx_media_files_username ON media_files(username);
 CREATE INDEX IF NOT EXISTS idx_payment_logs_username ON payment_logs(username);
 CREATE INDEX IF NOT EXISTS idx_payment_logs_status ON payment_logs(status);
+CREATE INDEX IF NOT EXISTS idx_analytics_views_username_ts ON analytics_views(username, timestamp);
+CREATE INDEX IF NOT EXISTS idx_analytics_clicks_link_id ON analytics_clicks(link_id);
 
 -- Seed Demo Data
 INSERT OR IGNORE INTO users (id, username, password_hash, pro_status, role) VALUES

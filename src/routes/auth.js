@@ -13,7 +13,13 @@ const authLimiter = rateLimiter({ limit: 10, windowMs: 60 * 1000, message: 'Too 
 
 // --- Register ---
 auth.post('/register', authLimiter, async (c) => {
-  const { username, password, blueprint } = await c.req.json();
+  let body;
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: 'Invalid JSON' }, 400);
+  }
+  const { username, password, blueprint } = body;
   if (!username || !password) {
     return c.json({ error: 'Username and password are required' }, 400);
   }
@@ -27,6 +33,9 @@ auth.post('/register', authLimiter, async (c) => {
 
   if (password.length < 8) {
     return c.json({ error: 'Password must be at least 8 characters long.' }, 400);
+  }
+  if (password.length > 128) {
+    return c.json({ error: 'Password is too long.' }, 400);
   }
 
   try {
@@ -51,8 +60,8 @@ auth.post('/register', authLimiter, async (c) => {
       )
     ]);
 
-    const secret = c.env.JWT_SECRET || 'fallback_secret_do_not_use_in_prod';
-    const token = await sign({ id: userId, username: cleanUsername, role: 'user' }, secret);
+    if (!c.env.JWT_SECRET) return c.json({ error: 'Server configuration error' }, 500);
+    const token = await sign({ id: userId, username: cleanUsername, role: 'user', exp: Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60 }, c.env.JWT_SECRET);
 
     setCookie(c, 'auralink_session', token, {
       httpOnly: true, secure: true, sameSite: 'Strict', path: '/',
@@ -72,7 +81,13 @@ auth.post('/register', authLimiter, async (c) => {
 
 // --- Login ---
 auth.post('/login', authLimiter, async (c) => {
-  const { username, password } = await c.req.json();
+  let body;
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: 'Invalid JSON' }, 400);
+  }
+  const { username, password } = body;
   if (!username || !password) {
     return c.json({ error: 'Username and password are required' }, 400);
   }
@@ -87,13 +102,13 @@ auth.post('/login', authLimiter, async (c) => {
       return c.json({ error: 'Invalid username or password' }, 401);
     }
 
+    if (user.account_status === 'suspended') {
+      return c.json({ error: 'This account is suspended' }, 403);
+    }
+
     const passwordValid = await verifyPassword(password, user.password_hash);
     if (!passwordValid) {
       return c.json({ error: 'Invalid username or password' }, 401);
-    }
-
-    if (user.account_status === 'suspended') {
-      return c.json({ error: 'This account is suspended' }, 403);
     }
 
     // Rehash legacy passwords on successful login
@@ -103,8 +118,8 @@ auth.post('/login', authLimiter, async (c) => {
         .bind(newHash, user.id).run();
     }
 
-    const secret = c.env.JWT_SECRET || 'fallback_secret_do_not_use_in_prod';
-    const token = await sign({ id: user.id, username: user.username, role: user.role }, secret);
+    if (!c.env.JWT_SECRET) return c.json({ error: 'Server configuration error' }, 500);
+    const token = await sign({ id: user.id, username: user.username, role: user.role, exp: Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60 }, c.env.JWT_SECRET);
 
     setCookie(c, 'auralink_session', token, {
       httpOnly: true, secure: true, sameSite: 'Strict', path: '/',
@@ -122,8 +137,14 @@ auth.post('/login', authLimiter, async (c) => {
 });
 
 // --- Google OAuth ---
-auth.post('/google', async (c) => {
-  const { credential } = await c.req.json();
+auth.post('/google', authLimiter, async (c) => {
+  let body;
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: 'Invalid JSON' }, 400);
+  }
+  const { credential } = body;
   if (!credential) return c.json({ error: 'Missing credential' }, 400);
 
   try {
@@ -134,7 +155,7 @@ auth.post('/google', async (c) => {
     const email = googleUser.email;
     const googleId = googleUser.sub;
     const name = googleUser.name;
-    const defaultUsername = email.split('@')[0] + Math.floor(Math.random() * 1000);
+    const defaultUsername = (email.split('@')[0] + crypto.randomUUID().slice(0, 8)).replace(/[^a-z0-9_]/g, '');
 
     let user = await c.env.DB.prepare('SELECT id, username, role, pro_status, account_status FROM users WHERE google_id = ? OR email = ?')
       .bind(googleId, email).first();
@@ -154,8 +175,8 @@ auth.post('/google', async (c) => {
       return c.json({ error: 'This account is suspended' }, 403);
     }
 
-    const secret = c.env.JWT_SECRET || 'fallback_secret_do_not_use_in_prod';
-    const token = await sign({ id: user.id, username: user.username, role: user.role }, secret);
+    if (!c.env.JWT_SECRET) return c.json({ error: 'Server configuration error' }, 500);
+    const token = await sign({ id: user.id, username: user.username, role: user.role, exp: Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60 }, c.env.JWT_SECRET);
 
     setCookie(c, 'auralink_session', token, {
       httpOnly: true, secure: true, sameSite: 'Strict', path: '/',

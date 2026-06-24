@@ -103,7 +103,7 @@ export default function LandingPage({ onNavigate }) {
               <li><Check size={16} /> Unlimited standard links</li>
               <li><Check size={16} /> Basic analytics</li>
               <li><Check size={16} /> Standard themes</li>
-              <li><Check size={16} /> 15MB media storage</li>
+              <li><Check size={16} /> 10MB media storage</li>
             </ul>
             <button onClick={() => onNavigate('/auth')} className="btn btn-secondary full-width">Start free</button>
           </div>
@@ -114,7 +114,7 @@ export default function LandingPage({ onNavigate }) {
             <div className="price-num">Rs. 100<span>/ year</span></div>
             <ul className="price-features">
               <li><Check size={16} /> Premium themes and custom CSS</li>
-              <li><Check size={16} /> 100MB media storage</li>
+              <li><Check size={16} /> 50MB media storage</li>
               <li><Check size={16} /> Short usernames</li>
               <li><Check size={16} /> Link scheduling and product labels</li>
               <li><Check size={16} /> Watermark control</li>

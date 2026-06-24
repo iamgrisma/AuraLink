@@ -28,7 +28,7 @@ const THEME_PRESETS = [
     btnStyle: 'solid',
     btnColor: '#ffffff',
     textColor: '#ff758c',
-    fontColor: '#ffffff',
+    fontColor: '#4c0519',
     premium: false
   },
   {
@@ -97,7 +97,7 @@ const THEME_PRESETS = [
     value: 'linear-gradient(135deg, #0f172a, #0284c7)',
     btnStyle: 'pill',
     btnColor: '#38bdf8',
-    textColor: '#ffffff',
+    textColor: '#0f172a',
     fontColor: '#e0f2fe',
     premium: false
   },
@@ -148,7 +148,7 @@ const THEME_PRESETS = [
     btnStyle: 'solid',
     btnColor: '#ea580c',
     textColor: '#ffffff',
-    fontColor: '#9a3412',
+    fontColor: '#431407',
     premium: true
   },
   {
@@ -178,7 +178,7 @@ const THEME_PRESETS = [
     btnStyle: 'shadow',
     btnColor: '#319795',
     textColor: '#ffffff',
-    fontColor: '#234e52',
+    fontColor: '#1d4044',
     premium: true
   },
   {

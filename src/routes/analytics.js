@@ -1,13 +1,21 @@
 // AuraLink — Analytics Routes
 import { Hono } from 'hono';
 import { authMiddleware, ownershipCheck } from '../middleware/auth.js';
+import { rateLimiter } from '../middleware/rateLimit.js';
 
 const analytics = new Hono();
+const analyticsLimiter = rateLimiter({ limit: 100, windowMs: 60 * 1000, message: 'Too many requests' });
 
 // --- Record Page View (Public) ---
-analytics.post('/view', async (c) => {
-  const { username, referrer, userAgent, deviceType, country } = await c.req.json();
+analytics.post('/view/:username?', analyticsLimiter, async (c) => {
+  let body = {};
+  try { body = await c.req.json(); } catch {}
+  const username = c.req.param('username') || body.username;
   if (!username) return c.json({ error: 'Username required' }, 400);
+  
+  const { referrer, deviceType } = body;
+  const country = c.req.header('cf-ipcountry') || body.country || 'Unknown';
+  const userAgent = c.req.header('user-agent') || body.userAgent || '';
   
   const cleanUsername = username.trim().toLowerCase();
   try {
@@ -29,8 +37,11 @@ analytics.post('/view', async (c) => {
 });
 
 // --- Record Link Click (Public) ---
-analytics.post('/click', async (c) => {
-  const { username, linkId, linkUrl } = await c.req.json();
+analytics.post('/click/:username?', analyticsLimiter, async (c) => {
+  let body = {};
+  try { body = await c.req.json(); } catch {}
+  const username = c.req.param('username') || body.username;
+  const { linkId, linkUrl } = body;
   if (!username || !linkId) return c.json({ error: 'Username and linkId required' }, 400);
   
   const cleanUsername = username.trim().toLowerCase();
@@ -117,17 +128,31 @@ analytics.get('/report/:username', authMiddleware, ownershipCheck(), async (c) =
       ORDER BY count DESC
     `).bind(cleanUsername).all();
 
+    const { results: userLinks } = await c.env.DB.prepare('SELECT id, title, url FROM links WHERE username = ? ORDER BY display_order ASC').bind(cleanUsername).all();
+    const linkPerformance = userLinks.map(link => {
+      const clickData = clicksByLink.find(c => c.linkId === link.id);
+      return { id: link.id, title: link.title, url: link.url, clicks: clickData ? clickData.count : 0 };
+    }).sort((a, b) => b.clicks - a.clicks);
+
     return c.json({
-      summary: {
-        views: viewsCount,
-        clicks: clicksCount,
-        ctr: `${ctr}%`
+      metrics: {
+        totalViews: viewsCount,
+        totalClicks: clicksCount,
+        ctr: ctr
       },
       viewsByDate,
-      referrers: referrersData,
+      referralData: referrersData.map(r => {
+        const total = referrersData.reduce((s, x) => s + x.count, 0) || 1;
+        return {
+          source: r.referrer,
+          count: r.count,
+          percentage: ((r.count / total) * 100).toFixed(1)
+        };
+      }),
       devices: devicesData,
       countries: countriesData,
-      clicksByLink
+      clicksByLink,
+      linkPerformance
     });
     
   } catch (err) {

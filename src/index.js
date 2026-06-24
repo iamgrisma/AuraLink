@@ -13,9 +13,9 @@ const app = new Hono();
 // Replaced reflect-all with proper domain restrictions
 app.use('/api/*', cors({
   origin: (origin) => {
-    // During dev, you might want to allow localhost. In prod, lock this to your domain.
-    // e.g., if (origin === 'https://yourdomain.com' || origin === 'http://localhost:5173') return origin;
-    return origin; 
+    // Return only your production domain(s) or localhost for dev
+    if (origin && (origin.endsWith('auralink.com') || origin.startsWith('http://localhost:'))) return origin; 
+    return null; 
   },
   credentials: true,
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -39,6 +39,22 @@ app.route('/api/profile', profileRoutes);
 app.route('/api/admin', adminRoutes);
 app.route('/api/media', mediaRoutes);
 app.route('/api/analytics', analyticsRoutes);
+
+app.post('/api/report', async (c) => {
+  try {
+    const body = await c.req.json();
+    const { reportedUsername, reason, reporterId } = body;
+    if (!reportedUsername || !reason) return c.json({ error: 'Missing fields' }, 400);
+    
+    // In a real app, add rate limiting and auth checks here
+    await c.env.DB.prepare("INSERT INTO profile_reports (id, reported_username, reporter_id, reason, status) VALUES (?, ?, ?, ?, 'pending')")
+      .bind(crypto.randomUUID(), reportedUsername, reporterId || null, reason).run();
+    return c.json({ message: 'Report submitted successfully' }, 201);
+  } catch (err) {
+    console.error('Report error:', err);
+    return c.json({ error: 'Failed to submit report' }, 500);
+  }
+});
 
 // --- SPA Fallback for Frontend ---
 // This handles any route that doesn't start with /api and doesn't match an R2 asset.
@@ -95,19 +111,21 @@ app.get('*', async (c) => {
 
           const safeTitle = escapeHtml(title);
           const safeDesc = escapeHtml(desc);
+          const safeAvatar = escapeHtml(avatar);
+          const safeUrl = escapeHtml(c.req.url);
 
           const metaTags = `
             <title>${safeTitle}</title>
             <meta name="description" content="${safeDesc}">
             <meta property="og:title" content="${safeTitle}">
             <meta property="og:description" content="${safeDesc}">
-            <meta property="og:image" content="${avatar}">
+            <meta property="og:image" content="${safeAvatar}">
             <meta property="og:type" content="profile">
-            <meta property="og:url" content="${c.req.url}">
+            <meta property="og:url" content="${safeUrl}">
             <meta name="twitter:card" content="summary_large_image">
             <meta name="twitter:title" content="${safeTitle}">
             <meta name="twitter:description" content="${safeDesc}">
-            <meta name="twitter:image" content="${avatar}">
+            <meta name="twitter:image" content="${safeAvatar}">
           `;
           html = html.replace(/<title>.*?<\/title>/, metaTags);
         }

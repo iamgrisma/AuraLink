@@ -139,10 +139,10 @@ export default function PublicBioPage({ username }) {
 
         // Record the page view in the background
         const referrerVal = getReferrer();
-        fetch(`${API_BASE}/analytics/view/${username}`, {
+        fetch(`${API_BASE}/analytics/view`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ referrer: referrerVal }),
+          body: JSON.stringify({ username, referrer: referrerVal }),
           credentials: 'include'
         }).catch(err => console.error('Failed to log view analytics:', err));
 
@@ -160,10 +160,10 @@ export default function PublicBioPage({ username }) {
 
   // Log link click before redirection
   const handleLinkClick = (linkId) => {
-    fetch(`${API_BASE}/analytics/click/${username}`, {
+    fetch(`${API_BASE}/analytics/click`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ linkId }),
+      body: JSON.stringify({ username, linkId }),
       credentials: 'include'
     }).catch(err => console.error('Failed to log click analytics:', err));
   };
@@ -378,24 +378,11 @@ export default function PublicBioPage({ username }) {
             }).map((link) => {
               const finalStyleName = link.buttonStyle || profile.theme.buttonStyle || 'solid';
               const buttonClass = `bio-link-button theme-${finalStyleName}-btn`;
-              const computedStyles = {};
-              
-              // Theme Base styles
-              if (finalStyleName === 'solid' || finalStyleName === 'pill' || finalStyleName === 'soft') {
-                computedStyles.backgroundColor = profile.theme.buttonColor;
-                computedStyles.color = profile.theme.buttonTextColor;
-              } else if (finalStyleName === 'outline' || finalStyleName === 'dashed') {
-                computedStyles.borderColor = profile.theme.buttonColor;
-                computedStyles.color = profile.theme.buttonColor;
-              }
-              
-              // Individual link overrides
-              if (link.buttonColor) computedStyles.backgroundColor = link.buttonColor;
-              if (link.buttonColor && (finalStyleName === 'outline' || finalStyleName === 'dashed')) {
-                computedStyles.borderColor = link.buttonColor;
-                computedStyles.color = link.buttonColor;
-              }
-              if (link.buttonTextColor) computedStyles.color = link.buttonTextColor;
+              const computedStyles = {
+                '--btn-color': link.buttonColor || profile.theme.buttonColor,
+                '--btn-text-color': link.buttonTextColor || profile.theme.buttonTextColor,
+              };
+
               if (link.buttonBorderColor) computedStyles.borderColor = link.buttonBorderColor;
               if (link.buttonBorderRadius) computedStyles.borderRadius = link.buttonBorderRadius;
 

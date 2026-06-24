@@ -1,7 +1,8 @@
 import { Link2, Eye, X } from 'lucide-react';
-import { FaTwitter, FaInstagram, FaYoutube, FaTiktok, FaFacebook, FaGithub, FaLinkedin, FaSpotify, FaDiscord, FaTwitch } from 'react-icons/fa';
+import { FaTwitter, FaInstagram, FaYoutube, FaTiktok, FaFacebook, FaGithub, FaLinkedin, FaSpotify, FaDiscord, FaTwitch, FaPatreon, FaReddit, FaSnapchatGhost, FaPinterest, FaTelegram, FaWhatsapp } from 'react-icons/fa';
+import { FaThreads } from 'react-icons/fa6';
 
-const AVAILABLE_ICONS = { FaTwitter, FaInstagram, FaYoutube, FaTiktok, FaFacebook, FaGithub, FaLinkedin, FaSpotify, FaDiscord, FaTwitch };
+const AVAILABLE_ICONS = { FaTwitter, FaInstagram, FaYoutube, FaTiktok, FaFacebook, FaGithub, FaLinkedin, FaSpotify, FaDiscord, FaTwitch, FaPatreon, FaReddit, FaSnapchatGhost, FaPinterest, FaTelegram, FaWhatsapp, FaThreads };
 const SOCIAL_COLOR_MAP = {
   instagram: '#e1306c',
   youtube: '#ff0000',
@@ -9,7 +10,16 @@ const SOCIAL_COLOR_MAP = {
   tiktok: '#ffffff',
   facebook: '#1877f2',
   github: '#f5f5f5',
-  linkedin: '#0a66c2'
+  linkedin: '#0a66c2',
+  patreon: '#ff424d',
+  reddit: '#ff4500',
+  snapchat: '#fffc00',
+  pinterest: '#e60023',
+  telegram: '#0088cc',
+  whatsapp: '#25d366',
+  threads: '#ffffff',
+  discord: '#5865F2',
+  twitch: '#9146FF'
 };
 const AVATAR_SIZE_MAP = {
   sm: 58,
@@ -48,19 +58,33 @@ export default function Simulator() {
     </div>
   );
 
+  const getPlatformIcon = (platform) => {
+    switch (platform) {
+      case 'instagram': return FaInstagram;
+      case 'youtube': return FaYoutube;
+      case 'twitter': return FaTwitter;
+      case 'tiktok': return FaTiktok;
+      case 'facebook': return FaFacebook;
+      case 'github': return FaGithub;
+      case 'linkedin': return FaLinkedin;
+      case 'patreon': return FaPatreon;
+      case 'reddit': return FaReddit;
+      case 'snapchat': return FaSnapchatGhost;
+      case 'pinterest': return FaPinterest;
+      case 'telegram': return FaTelegram;
+      case 'whatsapp': return FaWhatsapp;
+      case 'threads': return FaThreads;
+      case 'discord': return FaDiscord;
+      case 'twitch': return FaTwitch;
+      default: return null;
+    }
+  };
+
   const renderSocialItem = ([platform, handle]) => {
-    const Icon = AVAILABLE_ICONS[{
-      instagram: 'FaInstagram',
-      youtube: 'FaYoutube',
-      twitter: 'FaTwitter',
-      tiktok: 'FaTiktok',
-      facebook: 'FaFacebook',
-      github: 'FaGithub',
-      linkedin: 'FaLinkedin'
-    }[platform]];
+    const Icon = getPlatformIcon(platform);
     if (!Icon) return null;
 
-    const fontColor = profile.theme.backgroundValue.includes('#fdf2f8') ? '#4c0519' : '#ffffff';
+    const fontColor = profile.theme.fontColor || '#ffffff';
     const brandColor = SOCIAL_COLOR_MAP[platform] || fontColor;
     const toneColor = socialIconStyle === 'brand' ? brandColor : (socialIconStyle === 'custom' ? (profile.socialIconColor || fontColor) : fontColor);
     const label = platform.charAt(0).toUpperCase() + platform.slice(1);
@@ -119,7 +143,7 @@ export default function Simulator() {
           style={{ 
             background: profile.theme.backgroundValue, 
             fontFamily: profile.theme.font === 'monospace' ? 'Courier New, monospace' : profile.theme.font,
-            color: profile.theme.backgroundValue.includes('#fdf2f8') ? '#4c0519' : '#ffffff' 
+            color: profile.theme.fontColor || '#ffffff' 
           }}
         >
           {profile.proStatus === 'approved' && profile.customCss && (
@@ -130,7 +154,7 @@ export default function Simulator() {
           {renderAvatar()}
 
           <h2 className="bio-name" style={{ marginTop: '1rem' }}>{profile.name || `@${username}`}</h2>
-          <p className="bio-description" style={{ color: profile.theme.backgroundValue.includes('#fdf2f8') ? 'rgba(76,5,25,0.7)' : 'rgba(255,255,255,0.7)' }}>
+          <p className="bio-description" style={{ color: profile.theme.fontColor || '#ffffff', opacity: 0.7 }}>
             {profile.bio || 'Enter details on the left to customize...'}
           </p>
 
@@ -163,24 +187,11 @@ export default function Simulator() {
             }).map((link) => {
               const finalStyleName = link.buttonStyle || profile.theme.buttonStyle || 'solid';
               const buttonClass = `bio-link-button theme-${finalStyleName}-btn`;
-              const computedStyles = {};
-              
-              // Theme Base styles
-              if (finalStyleName === 'solid' || finalStyleName === 'pill' || finalStyleName === 'soft') {
-                computedStyles.backgroundColor = profile.theme.buttonColor;
-                computedStyles.color = profile.theme.buttonTextColor;
-              } else if (finalStyleName === 'outline' || finalStyleName === 'dashed') {
-                computedStyles.borderColor = profile.theme.buttonColor;
-                computedStyles.color = profile.theme.buttonColor;
-              }
-              
-              // Individual link overrides
-              if (link.buttonColor) computedStyles.backgroundColor = link.buttonColor;
-              if (link.buttonColor && (finalStyleName === 'outline' || finalStyleName === 'dashed')) {
-                computedStyles.borderColor = link.buttonColor;
-                computedStyles.color = link.buttonColor;
-              }
-              if (link.buttonTextColor) computedStyles.color = link.buttonTextColor;
+              const computedStyles = {
+                '--btn-color': link.buttonColor || profile.theme.buttonColor,
+                '--btn-text-color': link.buttonTextColor || profile.theme.buttonTextColor,
+              };
+
               if (link.buttonBorderColor) computedStyles.borderColor = link.buttonBorderColor;
               if (link.buttonBorderRadius) computedStyles.borderRadius = link.buttonBorderRadius;
 
@@ -220,7 +231,7 @@ export default function Simulator() {
           </div>
 
           {(proStatus !== 'approved' || profile.showWatermark !== false) && (
-            <div className="branding-tag" style={{ color: profile.theme.backgroundValue.includes('#fdf2f8') ? 'rgba(76,5,25,0.4)' : 'rgba(255,255,255,0.4)' }}>
+            <div className="branding-tag" style={{ color: profile.theme.fontColor || '#ffffff', opacity: 0.6 }}>
               <Link2 size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> Powered by <span>AuraLink</span>
             </div>
           )}

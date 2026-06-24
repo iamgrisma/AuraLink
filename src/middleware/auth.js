@@ -12,8 +12,8 @@ export const authMiddleware = async (c, next) => {
     return c.json({ error: 'Unauthorized' }, 401);
   }
   try {
-    const secret = c.env.JWT_SECRET || 'fallback_secret_do_not_use_in_prod';
-    const payload = await verify(token, secret);
+    if (!c.env.JWT_SECRET) return c.json({ error: 'Server configuration error' }, 500);
+    const payload = await verify(token, c.env.JWT_SECRET);
     c.set('user', payload);
     await next();
   } catch {
@@ -41,7 +41,9 @@ export const adminMiddleware = async (c, next) => {
 export function ownershipCheck(paramName = 'username') {
   return async (c, next) => {
     const user = c.get('user');
-    const resourceUsername = c.req.param(paramName)?.trim().toLowerCase();
+    const paramVal = c.req.param(paramName);
+    if (!paramVal) return c.json({ error: 'Missing resource identifier' }, 400);
+    const resourceUsername = paramVal.trim().toLowerCase();
     if (user.username !== resourceUsername && user.role !== 'admin') {
       return c.json({ error: 'Forbidden: you can only access your own resources' }, 403);
     }

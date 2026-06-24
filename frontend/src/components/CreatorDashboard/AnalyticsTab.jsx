@@ -51,31 +51,23 @@ export default function AnalyticsTab() {
               <span>0</span>
             </div>
             <div className="chart-bars-container">
-              {[
-                { hour: '10:00', views: 3, clicks: 1 },
-                { hour: '11:00', views: 4, clicks: 2 },
-                { hour: '12:00', views: 6, clicks: 3 },
-                { hour: '13:00', views: 8, clicks: 4 },
-                { hour: '14:00 (Now)', views: analytics.metrics.totalViews || 1, clicks: analytics.metrics.totalClicks || 0 }
-              ].map((bar, i) => {
-                const maxVal = 10;
-                const viewsHeight = `${Math.min((bar.views / maxVal) * 100, 100)}%`;
-                const clicksHeight = `${Math.min((bar.clicks / maxVal) * 100, 100)}%`;
+              {(analytics.viewsByDate && analytics.viewsByDate.length > 0) ? analytics.viewsByDate.map((dayData, i) => {
+                const dateLabel = new Date(dayData[0]).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                const views = dayData[1] || 0;
+                const maxVal = Math.max(10, ...analytics.viewsByDate.map(d => d[1]));
+                const viewsHeight = `${(views / maxVal) * 100}%`;
 
                 return (
                   <div key={i} className="chart-bar-wrapper">
                     <div className="chart-bar-group">
                       <div className="chart-bar-views" style={{ height: viewsHeight }}>
-                        <div className="bar-tooltip">Views: {bar.views}</div>
-                      </div>
-                      <div className="chart-bar-clicks" style={{ height: clicksHeight }}>
-                        <div className="bar-tooltip">Clicks: {bar.clicks}</div>
+                        <div className="bar-tooltip">Views: {views}</div>
                       </div>
                     </div>
-                    <div className="chart-label">{bar.hour}</div>
+                    <div className="chart-label" style={{ fontSize: '10px' }}>{dateLabel}</div>
                   </div>
                 );
-              })}
+              }) : <p style={{ alignSelf: 'center', margin: '0 auto', color: 'var(--text-muted)' }}>No data available for the selected range.</p>}
             </div>
           </div>
         </div>
